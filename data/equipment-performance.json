@@ -1,0 +1,1477 @@
+{
+  "PU-2101B": {
+    "info": {
+      "NAMEPLATE / IDENTIFICATION": "",
+      "Equipment Tag": "PU-2101B",
+      "Equipment Name": "Feed Charge Pump PU-2101B",
+      "Equipment Type": "Centrifugal Pump",
+      "Equipment Class": "B",
+      "Plant / Unit": "Resin Plant (ARP)",
+      "Discipline": "ROT",
+      "Criticality": "Medium",
+      "Design Life": "5 years (bearing) / 24 months (seal element)",
+      "Monitoring Method": "Online DCS + monthly vibration/thermography route",
+      "Linked RCA / AR No.": "AR-2026-ARP-0117",
+      "Failure Date": "12-Mar-2026",
+      "Dominant Failure Mode": "Mechanical Seal Leakage"
+    },
+    "history": [
+      {
+        "Week": 1,
+        "Date": "2025-10-23",
+        "Overall Vibration (mm/s)": 3.893,
+        "Seal Flush Flow (L/min)": 6.529,
+        "Discharge Pressure (barg)": 9.576,
+        "Bearing Temp (°C)": 62.025,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 2,
+        "Date": "2025-10-30",
+        "Overall Vibration (mm/s)": 3.941,
+        "Seal Flush Flow (L/min)": 6.467,
+        "Discharge Pressure (barg)": 9.549,
+        "Bearing Temp (°C)": 63.051,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 3,
+        "Date": "2025-11-06",
+        "Overall Vibration (mm/s)": 3.805,
+        "Seal Flush Flow (L/min)": 6.528,
+        "Discharge Pressure (barg)": 9.529,
+        "Bearing Temp (°C)": 61.209,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 4,
+        "Date": "2025-11-13",
+        "Overall Vibration (mm/s)": 4.062,
+        "Seal Flush Flow (L/min)": 6.384,
+        "Discharge Pressure (barg)": 9.593,
+        "Bearing Temp (°C)": 62.58,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 5,
+        "Date": "2025-11-20",
+        "Overall Vibration (mm/s)": 4.314,
+        "Seal Flush Flow (L/min)": 6.257,
+        "Discharge Pressure (barg)": 9.54,
+        "Bearing Temp (°C)": 63.955,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 6,
+        "Date": "2025-11-27",
+        "Overall Vibration (mm/s)": 4.42,
+        "Seal Flush Flow (L/min)": 6.365,
+        "Discharge Pressure (barg)": 9.454,
+        "Bearing Temp (°C)": 64.237,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 7,
+        "Date": "2025-12-04",
+        "Overall Vibration (mm/s)": 4.249,
+        "Seal Flush Flow (L/min)": 6.327,
+        "Discharge Pressure (barg)": 9.481,
+        "Bearing Temp (°C)": 64.575,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 8,
+        "Date": "2025-12-11",
+        "Overall Vibration (mm/s)": 4.43,
+        "Seal Flush Flow (L/min)": 6.229,
+        "Discharge Pressure (barg)": 9.354,
+        "Bearing Temp (°C)": 66.064,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 9,
+        "Date": "2025-12-18",
+        "Overall Vibration (mm/s)": 5.01,
+        "Seal Flush Flow (L/min)": 6.178,
+        "Discharge Pressure (barg)": 9.252,
+        "Bearing Temp (°C)": 67.55,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 10,
+        "Date": "2025-12-25",
+        "Overall Vibration (mm/s)": 5.437,
+        "Seal Flush Flow (L/min)": 6.032,
+        "Discharge Pressure (barg)": 9.197,
+        "Bearing Temp (°C)": 69.353,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 11,
+        "Date": "2026-01-01",
+        "Overall Vibration (mm/s)": 5.597,
+        "Seal Flush Flow (L/min)": 5.892,
+        "Discharge Pressure (barg)": 9.029,
+        "Bearing Temp (°C)": 69.195,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 12,
+        "Date": "2026-01-08",
+        "Overall Vibration (mm/s)": 6.115,
+        "Seal Flush Flow (L/min)": 5.691,
+        "Discharge Pressure (barg)": 8.969,
+        "Bearing Temp (°C)": 71.414,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 13,
+        "Date": "2026-01-15",
+        "Overall Vibration (mm/s)": 6.427,
+        "Seal Flush Flow (L/min)": 5.594,
+        "Discharge Pressure (barg)": 8.796,
+        "Bearing Temp (°C)": 74.062,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 14,
+        "Date": "2026-01-22",
+        "Overall Vibration (mm/s)": 6.874,
+        "Seal Flush Flow (L/min)": 5.385,
+        "Discharge Pressure (barg)": 8.737,
+        "Bearing Temp (°C)": 76.229,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 15,
+        "Date": "2026-01-29",
+        "Overall Vibration (mm/s)": 7.371,
+        "Seal Flush Flow (L/min)": 5.257,
+        "Discharge Pressure (barg)": 8.598,
+        "Bearing Temp (°C)": 78.331,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 16,
+        "Date": "2026-02-05",
+        "Overall Vibration (mm/s)": 7.882,
+        "Seal Flush Flow (L/min)": 5.189,
+        "Discharge Pressure (barg)": 8.414,
+        "Bearing Temp (°C)": 80.834,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 17,
+        "Date": "2026-02-12",
+        "Overall Vibration (mm/s)": 8.347,
+        "Seal Flush Flow (L/min)": 4.911,
+        "Discharge Pressure (barg)": 8.301,
+        "Bearing Temp (°C)": 83.703,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 18,
+        "Date": "2026-02-19",
+        "Overall Vibration (mm/s)": 9.268,
+        "Seal Flush Flow (L/min)": 4.713,
+        "Discharge Pressure (barg)": 8.053,
+        "Bearing Temp (°C)": 86.145,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 19,
+        "Date": "2026-02-26",
+        "Overall Vibration (mm/s)": 9.764,
+        "Seal Flush Flow (L/min)": 4.44,
+        "Discharge Pressure (barg)": 7.922,
+        "Bearing Temp (°C)": 90.426,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 20,
+        "Date": "2026-03-05",
+        "Overall Vibration (mm/s)": 10.218,
+        "Seal Flush Flow (L/min)": 4.374,
+        "Discharge Pressure (barg)": 7.7,
+        "Bearing Temp (°C)": 91.338,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 21,
+        "Date": "2026-03-12",
+        "Overall Vibration (mm/s)": 11.22,
+        "Seal Flush Flow (L/min)": 3.92,
+        "Discharge Pressure (barg)": 7.35,
+        "Bearing Temp (°C)": 96.9,
+        "Health Status": "TRIP",
+        "Remark": "FAILURE — Mechanical Seal Leakage; unplanned downtime 18.5 h"
+      },
+      {
+        "Week": 22,
+        "Date": "2026-03-19",
+        "Overall Vibration (mm/s)": 3.624,
+        "Seal Flush Flow (L/min)": 6.231,
+        "Discharge Pressure (barg)": 9.554,
+        "Bearing Temp (°C)": 58.931,
+        "Health Status": "NORMAL",
+        "Remark": "Post-repair baseline restored (CAPA executed)"
+      },
+      {
+        "Week": 23,
+        "Date": "2026-03-26",
+        "Overall Vibration (mm/s)": 3.77,
+        "Seal Flush Flow (L/min)": 6.512,
+        "Discharge Pressure (barg)": 9.768,
+        "Bearing Temp (°C)": 61.511,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 24,
+        "Date": "2026-04-02",
+        "Overall Vibration (mm/s)": 3.587,
+        "Seal Flush Flow (L/min)": 6.257,
+        "Discharge Pressure (barg)": 10.064,
+        "Bearing Temp (°C)": 61.063,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 25,
+        "Date": "2026-04-09",
+        "Overall Vibration (mm/s)": 3.692,
+        "Seal Flush Flow (L/min)": 6.251,
+        "Discharge Pressure (barg)": 9.428,
+        "Bearing Temp (°C)": 60.562,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 26,
+        "Date": "2026-04-16",
+        "Overall Vibration (mm/s)": 3.796,
+        "Seal Flush Flow (L/min)": 6.446,
+        "Discharge Pressure (barg)": 9.51,
+        "Bearing Temp (°C)": 59.316,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      }
+    ],
+    "summary": {
+      "KPI": "Value",
+      "Monitoring Period (weeks)": 26,
+      "Total Downtime (hours)": 18.5,
+      "Period Hours": 4368,
+      "Availability (%)": 99.5764652014652,
+      "No. of Failures (period)": 1,
+      "MTBF (hours)": 4368,
+      "MTTR (hours)": 18.5,
+      "ALARM readings": 6,
+      "TRIP readings": 1,
+      "NORMAL readings": 19,
+      "PM Compliance (%)": 92,
+      "Production Loss (ton)": 251.6,
+      "Estimated Loss (k USD)": 226.44
+    }
+  },
+  "KO-3201": {
+    "info": {
+      "NAMEPLATE / IDENTIFICATION": "",
+      "Equipment Tag": "KO-3201",
+      "Equipment Name": "Cracked Gas Compressor KO-3201",
+      "Equipment Type": "Centrifugal Compressor",
+      "Equipment Class": "A",
+      "Plant / Unit": "Cracker Unit (ZCU)",
+      "Discipline": "ROT",
+      "Criticality": "High",
+      "Design Life": "5 years (bearing) / 24 months (seal element)",
+      "Monitoring Method": "Online DCS + monthly vibration/thermography route",
+      "Linked RCA / AR No.": "AR-2026-ZCU-0142",
+      "Failure Date": "29-Apr-2026",
+      "Dominant Failure Mode": "High Radial Vibration Trip (Bearing Distress)"
+    },
+    "history": [
+      {
+        "Week": 1,
+        "Date": "2025-12-10",
+        "DE Radial Vibration (micron)": 28.914,
+        "Lube Oil Water Content (ppm)": 259.777,
+        "Lube Oil Supply Press (barg)": 1.799,
+        "Bearing Metal Temp (°C)": 78.671,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 2,
+        "Date": "2025-12-17",
+        "DE Radial Vibration (micron)": 26.899,
+        "Lube Oil Water Content (ppm)": 299.796,
+        "Lube Oil Supply Press (barg)": 1.776,
+        "Bearing Metal Temp (°C)": 77.664,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 3,
+        "Date": "2025-12-24",
+        "DE Radial Vibration (micron)": 29.739,
+        "Lube Oil Water Content (ppm)": 226.415,
+        "Lube Oil Supply Press (barg)": 1.794,
+        "Bearing Metal Temp (°C)": 78.344,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 4,
+        "Date": "2025-12-31",
+        "DE Radial Vibration (micron)": 29.024,
+        "Lube Oil Water Content (ppm)": 255.766,
+        "Lube Oil Supply Press (barg)": 1.79,
+        "Bearing Metal Temp (°C)": 78.499,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 5,
+        "Date": "2026-01-07",
+        "DE Radial Vibration (micron)": 28.658,
+        "Lube Oil Water Content (ppm)": 292.849,
+        "Lube Oil Supply Press (barg)": 1.784,
+        "Bearing Metal Temp (°C)": 78.357,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 6,
+        "Date": "2026-01-14",
+        "DE Radial Vibration (micron)": 30.289,
+        "Lube Oil Water Content (ppm)": 350.734,
+        "Lube Oil Supply Press (barg)": 1.748,
+        "Bearing Metal Temp (°C)": 80.498,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 7,
+        "Date": "2026-01-21",
+        "DE Radial Vibration (micron)": 33.697,
+        "Lube Oil Water Content (ppm)": 387.773,
+        "Lube Oil Supply Press (barg)": 1.73,
+        "Bearing Metal Temp (°C)": 81.482,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 8,
+        "Date": "2026-01-28",
+        "DE Radial Vibration (micron)": 33.93,
+        "Lube Oil Water Content (ppm)": 384.412,
+        "Lube Oil Supply Press (barg)": 1.733,
+        "Bearing Metal Temp (°C)": 81.741,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 9,
+        "Date": "2026-02-04",
+        "DE Radial Vibration (micron)": 35.439,
+        "Lube Oil Water Content (ppm)": 470.814,
+        "Lube Oil Supply Press (barg)": 1.705,
+        "Bearing Metal Temp (°C)": 83.041,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 10,
+        "Date": "2026-02-11",
+        "DE Radial Vibration (micron)": 37.665,
+        "Lube Oil Water Content (ppm)": 501.213,
+        "Lube Oil Supply Press (barg)": 1.635,
+        "Bearing Metal Temp (°C)": 84.892,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 11,
+        "Date": "2026-02-18",
+        "DE Radial Vibration (micron)": 39.586,
+        "Lube Oil Water Content (ppm)": 587.811,
+        "Lube Oil Supply Press (barg)": 1.633,
+        "Bearing Metal Temp (°C)": 87.153,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 12,
+        "Date": "2026-02-25",
+        "DE Radial Vibration (micron)": 41.609,
+        "Lube Oil Water Content (ppm)": 630.011,
+        "Lube Oil Supply Press (barg)": 1.602,
+        "Bearing Metal Temp (°C)": 87.657,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 13,
+        "Date": "2026-03-04",
+        "DE Radial Vibration (micron)": 45.505,
+        "Lube Oil Water Content (ppm)": 713.736,
+        "Lube Oil Supply Press (barg)": 1.538,
+        "Bearing Metal Temp (°C)": 90.79,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 14,
+        "Date": "2026-03-11",
+        "DE Radial Vibration (micron)": 49.237,
+        "Lube Oil Water Content (ppm)": 778.644,
+        "Lube Oil Supply Press (barg)": 1.518,
+        "Bearing Metal Temp (°C)": 92.431,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 15,
+        "Date": "2026-03-18",
+        "DE Radial Vibration (micron)": 51.111,
+        "Lube Oil Water Content (ppm)": 840.66,
+        "Lube Oil Supply Press (barg)": 1.454,
+        "Bearing Metal Temp (°C)": 92.528,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 16,
+        "Date": "2026-03-25",
+        "DE Radial Vibration (micron)": 55.927,
+        "Lube Oil Water Content (ppm)": 929.853,
+        "Lube Oil Supply Press (barg)": 1.401,
+        "Bearing Metal Temp (°C)": 95.961,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 17,
+        "Date": "2026-04-01",
+        "DE Radial Vibration (micron)": 59.123,
+        "Lube Oil Water Content (ppm)": 1062.337,
+        "Lube Oil Supply Press (barg)": 1.335,
+        "Bearing Metal Temp (°C)": 98.832,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 18,
+        "Date": "2026-04-08",
+        "DE Radial Vibration (micron)": 60.529,
+        "Lube Oil Water Content (ppm)": 1135.42,
+        "Lube Oil Supply Press (barg)": 1.313,
+        "Bearing Metal Temp (°C)": 100.992,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 19,
+        "Date": "2026-04-15",
+        "DE Radial Vibration (micron)": 66.73,
+        "Lube Oil Water Content (ppm)": 1237.785,
+        "Lube Oil Supply Press (barg)": 1.219,
+        "Bearing Metal Temp (°C)": 104.623,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 20,
+        "Date": "2026-04-22",
+        "DE Radial Vibration (micron)": 71.674,
+        "Lube Oil Water Content (ppm)": 1372.791,
+        "Lube Oil Supply Press (barg)": 1.122,
+        "Bearing Metal Temp (°C)": 107.142,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 21,
+        "Date": "2026-04-29",
+        "DE Radial Vibration (micron)": 76.5,
+        "Lube Oil Water Content (ppm)": 1530.0,
+        "Lube Oil Supply Press (barg)": 1.078,
+        "Bearing Metal Temp (°C)": 112.2,
+        "Health Status": "TRIP",
+        "Remark": "FAILURE — High Radial Vibration Trip (Bearing Distress); unplanned downtime 32.0 h"
+      },
+      {
+        "Week": 22,
+        "Date": "2026-05-06",
+        "DE Radial Vibration (micron)": 27.111,
+        "Lube Oil Water Content (ppm)": 248.268,
+        "Lube Oil Supply Press (barg)": 1.718,
+        "Bearing Metal Temp (°C)": 76.162,
+        "Health Status": "NORMAL",
+        "Remark": "Post-repair baseline restored (CAPA executed)"
+      },
+      {
+        "Week": 23,
+        "Date": "2026-05-13",
+        "DE Radial Vibration (micron)": 27.704,
+        "Lube Oil Water Content (ppm)": 241.516,
+        "Lube Oil Supply Press (barg)": 1.684,
+        "Bearing Metal Temp (°C)": 73.735,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 24,
+        "Date": "2026-05-20",
+        "DE Radial Vibration (micron)": 26.92,
+        "Lube Oil Water Content (ppm)": 244.244,
+        "Lube Oil Supply Press (barg)": 1.84,
+        "Bearing Metal Temp (°C)": 77.07,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 25,
+        "Date": "2026-05-27",
+        "DE Radial Vibration (micron)": 27.433,
+        "Lube Oil Water Content (ppm)": 247.838,
+        "Lube Oil Supply Press (barg)": 1.703,
+        "Bearing Metal Temp (°C)": 74.816,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 26,
+        "Date": "2026-06-03",
+        "DE Radial Vibration (micron)": 27.234,
+        "Lube Oil Water Content (ppm)": 241.781,
+        "Lube Oil Supply Press (barg)": 1.73,
+        "Bearing Metal Temp (°C)": 77.771,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      }
+    ],
+    "summary": {
+      "KPI": "Value",
+      "Monitoring Period (weeks)": 26,
+      "Total Downtime (hours)": 32,
+      "Period Hours": 4368,
+      "Availability (%)": 99.26739926739927,
+      "No. of Failures (period)": 1,
+      "MTBF (hours)": 4368,
+      "MTTR (hours)": 32,
+      "ALARM readings": 11,
+      "TRIP readings": 1,
+      "NORMAL readings": 14,
+      "PM Compliance (%)": 92,
+      "Production Loss (ton)": 1760,
+      "Estimated Loss (k USD)": 1584
+    }
+  },
+  "PM-4405B": {
+    "info": {
+      "NAMEPLATE / IDENTIFICATION": "",
+      "Equipment Tag": "PM-4405B",
+      "Equipment Name": "Cooling Water Pump PM-4405B (Motor Driven)",
+      "Equipment Type": "Centrifugal Pump / Electric Motor",
+      "Equipment Class": "B",
+      "Plant / Unit": "Utility Plant (NUP)",
+      "Discipline": "ELE",
+      "Criticality": "Medium",
+      "Design Life": "5 years (bearing) / 24 months (seal element)",
+      "Monitoring Method": "Online DCS + monthly vibration/thermography route",
+      "Linked RCA / AR No.": "AR-2026-NUP-0089",
+      "Failure Date": "08-Jul-2026",
+      "Dominant Failure Mode": "Motor Bearing Failure (Overheating)"
+    },
+    "history": [
+      {
+        "Week": 1,
+        "Date": "2026-02-18",
+        "Motor DE Bearing Temp (°C)": 63.617,
+        "Motor Vibration (mm/s)": 2.468,
+        "Motor Ampere (A)": 133.725,
+        "Winding Temp (°C)": 96.639,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 2,
+        "Date": "2026-02-25",
+        "Motor DE Bearing Temp (°C)": 64.04,
+        "Motor Vibration (mm/s)": 2.443,
+        "Motor Ampere (A)": 131.366,
+        "Winding Temp (°C)": 94.458,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 3,
+        "Date": "2026-03-04",
+        "Motor DE Bearing Temp (°C)": 64.006,
+        "Motor Vibration (mm/s)": 2.679,
+        "Motor Ampere (A)": 132.215,
+        "Winding Temp (°C)": 96.07,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 4,
+        "Date": "2026-03-11",
+        "Motor DE Bearing Temp (°C)": 64.94,
+        "Motor Vibration (mm/s)": 2.618,
+        "Motor Ampere (A)": 132.454,
+        "Winding Temp (°C)": 96.361,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 5,
+        "Date": "2026-03-18",
+        "Motor DE Bearing Temp (°C)": 65.55,
+        "Motor Vibration (mm/s)": 2.782,
+        "Motor Ampere (A)": 134.231,
+        "Winding Temp (°C)": 95.593,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 6,
+        "Date": "2026-03-25",
+        "Motor DE Bearing Temp (°C)": 65.645,
+        "Motor Vibration (mm/s)": 3.003,
+        "Motor Ampere (A)": 133.577,
+        "Winding Temp (°C)": 96.823,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 7,
+        "Date": "2026-04-01",
+        "Motor DE Bearing Temp (°C)": 66.476,
+        "Motor Vibration (mm/s)": 3.062,
+        "Motor Ampere (A)": 134.033,
+        "Winding Temp (°C)": 98.95,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 8,
+        "Date": "2026-04-08",
+        "Motor DE Bearing Temp (°C)": 66.851,
+        "Motor Vibration (mm/s)": 3.201,
+        "Motor Ampere (A)": 134.385,
+        "Winding Temp (°C)": 99.369,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 9,
+        "Date": "2026-04-15",
+        "Motor DE Bearing Temp (°C)": 68.559,
+        "Motor Vibration (mm/s)": 3.343,
+        "Motor Ampere (A)": 136.254,
+        "Winding Temp (°C)": 100.744,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 10,
+        "Date": "2026-04-22",
+        "Motor DE Bearing Temp (°C)": 69.633,
+        "Motor Vibration (mm/s)": 3.706,
+        "Motor Ampere (A)": 138.69,
+        "Winding Temp (°C)": 103.699,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 11,
+        "Date": "2026-04-29",
+        "Motor DE Bearing Temp (°C)": 70.413,
+        "Motor Vibration (mm/s)": 4.2,
+        "Motor Ampere (A)": 139.701,
+        "Winding Temp (°C)": 104.721,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 12,
+        "Date": "2026-05-06",
+        "Motor DE Bearing Temp (°C)": 71.385,
+        "Motor Vibration (mm/s)": 4.132,
+        "Motor Ampere (A)": 142.763,
+        "Winding Temp (°C)": 108.321,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 13,
+        "Date": "2026-05-13",
+        "Motor DE Bearing Temp (°C)": 73.921,
+        "Motor Vibration (mm/s)": 4.388,
+        "Motor Ampere (A)": 142.827,
+        "Winding Temp (°C)": 110.606,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 14,
+        "Date": "2026-05-20",
+        "Motor DE Bearing Temp (°C)": 74.537,
+        "Motor Vibration (mm/s)": 4.838,
+        "Motor Ampere (A)": 145.824,
+        "Winding Temp (°C)": 114.327,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 15,
+        "Date": "2026-05-27",
+        "Motor DE Bearing Temp (°C)": 76.498,
+        "Motor Vibration (mm/s)": 5.375,
+        "Motor Ampere (A)": 147.179,
+        "Winding Temp (°C)": 117.834,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 16,
+        "Date": "2026-06-03",
+        "Motor DE Bearing Temp (°C)": 78.258,
+        "Motor Vibration (mm/s)": 5.606,
+        "Motor Ampere (A)": 150.389,
+        "Winding Temp (°C)": 118.576,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 17,
+        "Date": "2026-06-10",
+        "Motor DE Bearing Temp (°C)": 80.814,
+        "Motor Vibration (mm/s)": 6.043,
+        "Motor Ampere (A)": 152.555,
+        "Winding Temp (°C)": 123.3,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 18,
+        "Date": "2026-06-17",
+        "Motor DE Bearing Temp (°C)": 82.788,
+        "Motor Vibration (mm/s)": 6.493,
+        "Motor Ampere (A)": 155.447,
+        "Winding Temp (°C)": 128.027,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 19,
+        "Date": "2026-06-24",
+        "Motor DE Bearing Temp (°C)": 84.415,
+        "Motor Vibration (mm/s)": 6.991,
+        "Motor Ampere (A)": 157.396,
+        "Winding Temp (°C)": 133.654,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 20,
+        "Date": "2026-07-01",
+        "Motor DE Bearing Temp (°C)": 87.236,
+        "Motor Vibration (mm/s)": 7.372,
+        "Motor Ampere (A)": 162.307,
+        "Winding Temp (°C)": 135.486,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 21,
+        "Date": "2026-07-08",
+        "Motor DE Bearing Temp (°C)": 91.8,
+        "Motor Vibration (mm/s)": 8.16,
+        "Motor Ampere (A)": 168.3,
+        "Winding Temp (°C)": 142.8,
+        "Health Status": "TRIP",
+        "Remark": "FAILURE — Motor Bearing Failure (Overheating); unplanned downtime 8.0 h"
+      },
+      {
+        "Week": 22,
+        "Date": "2026-07-15",
+        "Motor DE Bearing Temp (°C)": 63.965,
+        "Motor Vibration (mm/s)": 2.545,
+        "Motor Ampere (A)": 127.659,
+        "Winding Temp (°C)": 91.57,
+        "Health Status": "NORMAL",
+        "Remark": "Post-repair baseline restored (CAPA executed)"
+      },
+      {
+        "Week": 23,
+        "Date": "2026-07-22",
+        "Motor DE Bearing Temp (°C)": 65.846,
+        "Motor Vibration (mm/s)": 2.681,
+        "Motor Ampere (A)": 127.446,
+        "Winding Temp (°C)": 97.367,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 24,
+        "Date": "2026-07-29",
+        "Motor DE Bearing Temp (°C)": 64.984,
+        "Motor Vibration (mm/s)": 2.428,
+        "Motor Ampere (A)": 127.592,
+        "Winding Temp (°C)": 92.001,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 25,
+        "Date": "2026-08-05",
+        "Motor DE Bearing Temp (°C)": 65.038,
+        "Motor Vibration (mm/s)": 2.529,
+        "Motor Ampere (A)": 132.291,
+        "Winding Temp (°C)": 93.757,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 26,
+        "Date": "2026-08-12",
+        "Motor DE Bearing Temp (°C)": 64.849,
+        "Motor Vibration (mm/s)": 2.528,
+        "Motor Ampere (A)": 131.854,
+        "Winding Temp (°C)": 94.427,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      }
+    ],
+    "summary": {
+      "KPI": "Value",
+      "Monitoring Period (weeks)": 26,
+      "Total Downtime (hours)": 8,
+      "Period Hours": 4368,
+      "Availability (%)": 99.81684981684981,
+      "No. of Failures (period)": 1,
+      "MTBF (hours)": 4368,
+      "MTTR (hours)": 8,
+      "ALARM readings": 6,
+      "TRIP readings": 1,
+      "NORMAL readings": 19,
+      "PM Compliance (%)": 92,
+      "Production Loss (ton)": 160,
+      "Estimated Loss (k USD)": 112
+    }
+  },
+  "HE-3301": {
+    "info": {
+      "NAMEPLATE / IDENTIFICATION": "",
+      "Equipment Tag": "HE-3301",
+      "Equipment Name": "Feed/Effluent Heat Exchanger HE-3301",
+      "Equipment Type": "Shell & Tube Heat Exchanger",
+      "Equipment Class": "B",
+      "Plant / Unit": "Cracker Unit (ZCU)",
+      "Discipline": "STA",
+      "Criticality": "Medium",
+      "Design Life": "5 years (bearing) / 24 months (seal element)",
+      "Monitoring Method": "Online DCS + monthly vibration/thermography route",
+      "Linked RCA / AR No.": "AR-2026-ZCU-0165",
+      "Failure Date": "21-May-2026",
+      "Dominant Failure Mode": "High Fouling — Duty Loss & High dP"
+    },
+    "history": [
+      {
+        "Week": 1,
+        "Date": "2026-01-01",
+        "Tube-side dP (bar)": 0.355,
+        "Heat Duty (% design)": 100.285,
+        "Cold Outlet Temp (°C)": 120.151,
+        "Feed Heavy-ends (%)": 1.169,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 2,
+        "Date": "2026-01-08",
+        "Tube-side dP (bar)": 0.355,
+        "Heat Duty (% design)": 99.865,
+        "Cold Outlet Temp (°C)": 119.916,
+        "Feed Heavy-ends (%)": 1.219,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 3,
+        "Date": "2026-01-15",
+        "Tube-side dP (bar)": 0.347,
+        "Heat Duty (% design)": 100.659,
+        "Cold Outlet Temp (°C)": 119.757,
+        "Feed Heavy-ends (%)": 1.209,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 4,
+        "Date": "2026-01-22",
+        "Tube-side dP (bar)": 0.337,
+        "Heat Duty (% design)": 98.944,
+        "Cold Outlet Temp (°C)": 118.962,
+        "Feed Heavy-ends (%)": 1.237,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 5,
+        "Date": "2026-01-29",
+        "Tube-side dP (bar)": 0.37,
+        "Heat Duty (% design)": 98.631,
+        "Cold Outlet Temp (°C)": 119.005,
+        "Feed Heavy-ends (%)": 1.263,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 6,
+        "Date": "2026-02-05",
+        "Tube-side dP (bar)": 0.377,
+        "Heat Duty (% design)": 97.271,
+        "Cold Outlet Temp (°C)": 118.131,
+        "Feed Heavy-ends (%)": 1.301,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 7,
+        "Date": "2026-02-12",
+        "Tube-side dP (bar)": 0.399,
+        "Heat Duty (% design)": 96.484,
+        "Cold Outlet Temp (°C)": 118.234,
+        "Feed Heavy-ends (%)": 1.254,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 8,
+        "Date": "2026-02-19",
+        "Tube-side dP (bar)": 0.421,
+        "Heat Duty (% design)": 96.59,
+        "Cold Outlet Temp (°C)": 116.945,
+        "Feed Heavy-ends (%)": 1.321,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 9,
+        "Date": "2026-02-26",
+        "Tube-side dP (bar)": 0.458,
+        "Heat Duty (% design)": 95.815,
+        "Cold Outlet Temp (°C)": 116.352,
+        "Feed Heavy-ends (%)": 1.337,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 10,
+        "Date": "2026-03-05",
+        "Tube-side dP (bar)": 0.455,
+        "Heat Duty (% design)": 94.48,
+        "Cold Outlet Temp (°C)": 115.188,
+        "Feed Heavy-ends (%)": 1.476,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 11,
+        "Date": "2026-03-12",
+        "Tube-side dP (bar)": 0.496,
+        "Heat Duty (% design)": 93.082,
+        "Cold Outlet Temp (°C)": 113.71,
+        "Feed Heavy-ends (%)": 1.5,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 12,
+        "Date": "2026-03-19",
+        "Tube-side dP (bar)": 0.517,
+        "Heat Duty (% design)": 90.36,
+        "Cold Outlet Temp (°C)": 112.245,
+        "Feed Heavy-ends (%)": 1.552,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 13,
+        "Date": "2026-03-26",
+        "Tube-side dP (bar)": 0.54,
+        "Heat Duty (% design)": 90.324,
+        "Cold Outlet Temp (°C)": 110.721,
+        "Feed Heavy-ends (%)": 1.631,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 14,
+        "Date": "2026-04-02",
+        "Tube-side dP (bar)": 0.57,
+        "Heat Duty (% design)": 87.662,
+        "Cold Outlet Temp (°C)": 109.747,
+        "Feed Heavy-ends (%)": 1.725,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 15,
+        "Date": "2026-04-09",
+        "Tube-side dP (bar)": 0.602,
+        "Heat Duty (% design)": 85.105,
+        "Cold Outlet Temp (°C)": 108.077,
+        "Feed Heavy-ends (%)": 1.791,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 16,
+        "Date": "2026-04-16",
+        "Tube-side dP (bar)": 0.635,
+        "Heat Duty (% design)": 83.143,
+        "Cold Outlet Temp (°C)": 105.479,
+        "Feed Heavy-ends (%)": 1.837,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 17,
+        "Date": "2026-04-23",
+        "Tube-side dP (bar)": 0.705,
+        "Heat Duty (% design)": 80.3,
+        "Cold Outlet Temp (°C)": 103.841,
+        "Feed Heavy-ends (%)": 1.979,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 18,
+        "Date": "2026-04-30",
+        "Tube-side dP (bar)": 0.751,
+        "Heat Duty (% design)": 77.895,
+        "Cold Outlet Temp (°C)": 102.087,
+        "Feed Heavy-ends (%)": 2.094,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 19,
+        "Date": "2026-05-07",
+        "Tube-side dP (bar)": 0.785,
+        "Heat Duty (% design)": 75.868,
+        "Cold Outlet Temp (°C)": 99.789,
+        "Feed Heavy-ends (%)": 2.161,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 20,
+        "Date": "2026-05-14",
+        "Tube-side dP (bar)": 0.854,
+        "Heat Duty (% design)": 72.706,
+        "Cold Outlet Temp (°C)": 97.922,
+        "Feed Heavy-ends (%)": 2.288,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 21,
+        "Date": "2026-05-21",
+        "Tube-side dP (bar)": 0.918,
+        "Heat Duty (% design)": 68.6,
+        "Cold Outlet Temp (°C)": 93.1,
+        "Feed Heavy-ends (%)": 2.448,
+        "Health Status": "TRIP",
+        "Remark": "FAILURE — High Fouling — Duty Loss & High dP; unplanned downtime 12.0 h"
+      },
+      {
+        "Week": 22,
+        "Date": "2026-05-28",
+        "Tube-side dP (bar)": 0.337,
+        "Heat Duty (% design)": 98.431,
+        "Cold Outlet Temp (°C)": 120.861,
+        "Feed Heavy-ends (%)": 1.246,
+        "Health Status": "NORMAL",
+        "Remark": "Post-repair baseline restored (CAPA executed)"
+      },
+      {
+        "Week": 23,
+        "Date": "2026-06-04",
+        "Tube-side dP (bar)": 0.316,
+        "Heat Duty (% design)": 94.81,
+        "Cold Outlet Temp (°C)": 116.073,
+        "Feed Heavy-ends (%)": 1.124,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 24,
+        "Date": "2026-06-11",
+        "Tube-side dP (bar)": 0.319,
+        "Heat Duty (% design)": 100.654,
+        "Cold Outlet Temp (°C)": 118.936,
+        "Feed Heavy-ends (%)": 1.154,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 25,
+        "Date": "2026-06-18",
+        "Tube-side dP (bar)": 0.358,
+        "Heat Duty (% design)": 102.194,
+        "Cold Outlet Temp (°C)": 116.948,
+        "Feed Heavy-ends (%)": 1.178,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 26,
+        "Date": "2026-06-25",
+        "Tube-side dP (bar)": 0.352,
+        "Heat Duty (% design)": 96.643,
+        "Cold Outlet Temp (°C)": 115.475,
+        "Feed Heavy-ends (%)": 1.182,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      }
+    ],
+    "summary": {
+      "KPI": "Value",
+      "Monitoring Period (weeks)": 26,
+      "Total Downtime (hours)": 12,
+      "Period Hours": 4368,
+      "Availability (%)": 99.72527472527473,
+      "No. of Failures (period)": 1,
+      "MTBF (hours)": 4368,
+      "MTTR (hours)": 12,
+      "ALARM readings": 10,
+      "TRIP readings": 1,
+      "NORMAL readings": 15,
+      "PM Compliance (%)": 92,
+      "Production Loss (ton)": 216,
+      "Estimated Loss (k USD)": 183.6
+    }
+  },
+  "BL-5702": {
+    "info": {
+      "NAMEPLATE / IDENTIFICATION": "",
+      "Equipment Tag": "BL-5702",
+      "Equipment Name": "Product Blower BL-5702",
+      "Equipment Type": "Centrifugal Blower",
+      "Equipment Class": "A",
+      "Plant / Unit": "Polymer Plant (OPP)",
+      "Discipline": "ROT",
+      "Criticality": "High",
+      "Design Life": "5 years (bearing) / 24 months (seal element)",
+      "Monitoring Method": "Online DCS + monthly vibration/thermography route",
+      "Linked RCA / AR No.": "AR-2026-OPP-0203",
+      "Failure Date": "17-Jun-2026",
+      "Dominant Failure Mode": "High Vibration (Coupling Misalignment)"
+    },
+    "history": [
+      {
+        "Week": 1,
+        "Date": "2026-01-28",
+        "Overall Vibration (mm/s)": 4.004,
+        "2X Harmonic (mm/s)": 1.143,
+        "Coupling Offset (mm)": 0.025,
+        "Bearing Temp (°C)": 60.72,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 2,
+        "Date": "2026-02-04",
+        "Overall Vibration (mm/s)": 4.188,
+        "2X Harmonic (mm/s)": 1.287,
+        "Coupling Offset (mm)": 0.034,
+        "Bearing Temp (°C)": 59.211,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 3,
+        "Date": "2026-02-11",
+        "Overall Vibration (mm/s)": 4.091,
+        "2X Harmonic (mm/s)": 1.293,
+        "Coupling Offset (mm)": 0.037,
+        "Bearing Temp (°C)": 60.73,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 4,
+        "Date": "2026-02-18",
+        "Overall Vibration (mm/s)": 4.265,
+        "2X Harmonic (mm/s)": 1.37,
+        "Coupling Offset (mm)": 0.034,
+        "Bearing Temp (°C)": 61.953,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 5,
+        "Date": "2026-02-25",
+        "Overall Vibration (mm/s)": 4.268,
+        "2X Harmonic (mm/s)": 1.311,
+        "Coupling Offset (mm)": 0.036,
+        "Bearing Temp (°C)": 60.442,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 6,
+        "Date": "2026-03-04",
+        "Overall Vibration (mm/s)": 4.435,
+        "2X Harmonic (mm/s)": 1.47,
+        "Coupling Offset (mm)": 0.051,
+        "Bearing Temp (°C)": 60.923,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 7,
+        "Date": "2026-03-11",
+        "Overall Vibration (mm/s)": 4.443,
+        "2X Harmonic (mm/s)": 1.694,
+        "Coupling Offset (mm)": 0.054,
+        "Bearing Temp (°C)": 62.389,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 8,
+        "Date": "2026-03-18",
+        "Overall Vibration (mm/s)": 4.892,
+        "2X Harmonic (mm/s)": 1.646,
+        "Coupling Offset (mm)": 0.054,
+        "Bearing Temp (°C)": 62.862,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 9,
+        "Date": "2026-03-25",
+        "Overall Vibration (mm/s)": 4.581,
+        "2X Harmonic (mm/s)": 1.763,
+        "Coupling Offset (mm)": 0.069,
+        "Bearing Temp (°C)": 66.274,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 10,
+        "Date": "2026-04-01",
+        "Overall Vibration (mm/s)": 5.295,
+        "2X Harmonic (mm/s)": 2.022,
+        "Coupling Offset (mm)": 0.085,
+        "Bearing Temp (°C)": 66.864,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 11,
+        "Date": "2026-04-08",
+        "Overall Vibration (mm/s)": 5.636,
+        "2X Harmonic (mm/s)": 2.195,
+        "Coupling Offset (mm)": 0.092,
+        "Bearing Temp (°C)": 68.063,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 12,
+        "Date": "2026-04-15",
+        "Overall Vibration (mm/s)": 6.003,
+        "2X Harmonic (mm/s)": 2.247,
+        "Coupling Offset (mm)": 0.125,
+        "Bearing Temp (°C)": 69.333,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 13,
+        "Date": "2026-04-22",
+        "Overall Vibration (mm/s)": 6.667,
+        "2X Harmonic (mm/s)": 2.605,
+        "Coupling Offset (mm)": 0.122,
+        "Bearing Temp (°C)": 73.118,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 14,
+        "Date": "2026-04-29",
+        "Overall Vibration (mm/s)": 6.786,
+        "2X Harmonic (mm/s)": 2.871,
+        "Coupling Offset (mm)": 0.143,
+        "Bearing Temp (°C)": 74.414,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 15,
+        "Date": "2026-05-06",
+        "Overall Vibration (mm/s)": 7.425,
+        "2X Harmonic (mm/s)": 2.96,
+        "Coupling Offset (mm)": 0.163,
+        "Bearing Temp (°C)": 77.137,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 16,
+        "Date": "2026-05-13",
+        "Overall Vibration (mm/s)": 7.976,
+        "2X Harmonic (mm/s)": 3.206,
+        "Coupling Offset (mm)": 0.183,
+        "Bearing Temp (°C)": 79.822,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 17,
+        "Date": "2026-05-20",
+        "Overall Vibration (mm/s)": 8.582,
+        "2X Harmonic (mm/s)": 3.579,
+        "Coupling Offset (mm)": 0.197,
+        "Bearing Temp (°C)": 83.58,
+        "Health Status": "ALARM",
+        "Remark": ""
+      },
+      {
+        "Week": 18,
+        "Date": "2026-05-27",
+        "Overall Vibration (mm/s)": 9.12,
+        "2X Harmonic (mm/s)": 3.951,
+        "Coupling Offset (mm)": 0.222,
+        "Bearing Temp (°C)": 84.866,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 19,
+        "Date": "2026-06-03",
+        "Overall Vibration (mm/s)": 9.711,
+        "2X Harmonic (mm/s)": 4.282,
+        "Coupling Offset (mm)": 0.25,
+        "Bearing Temp (°C)": 89.163,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 20,
+        "Date": "2026-06-10",
+        "Overall Vibration (mm/s)": 10.376,
+        "2X Harmonic (mm/s)": 4.671,
+        "Coupling Offset (mm)": 0.277,
+        "Bearing Temp (°C)": 92.41,
+        "Health Status": "ALARM",
+        "Remark": "Degradation trend — under close monitoring"
+      },
+      {
+        "Week": 21,
+        "Date": "2026-06-17",
+        "Overall Vibration (mm/s)": 11.22,
+        "2X Harmonic (mm/s)": 5.1,
+        "Coupling Offset (mm)": 0.306,
+        "Bearing Temp (°C)": 96.9,
+        "Health Status": "TRIP",
+        "Remark": "FAILURE — High Vibration (Coupling Misalignment); unplanned downtime 14.0 h"
+      },
+      {
+        "Week": 22,
+        "Date": "2026-06-24",
+        "Overall Vibration (mm/s)": 3.782,
+        "2X Harmonic (mm/s)": 1.243,
+        "Coupling Offset (mm)": 0.03,
+        "Bearing Temp (°C)": 60.743,
+        "Health Status": "NORMAL",
+        "Remark": "Post-repair baseline restored (CAPA executed)"
+      },
+      {
+        "Week": 23,
+        "Date": "2026-07-01",
+        "Overall Vibration (mm/s)": 3.76,
+        "2X Harmonic (mm/s)": 1.255,
+        "Coupling Offset (mm)": 0.023,
+        "Bearing Temp (°C)": 57.352,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 24,
+        "Date": "2026-07-08",
+        "Overall Vibration (mm/s)": 3.918,
+        "2X Harmonic (mm/s)": 1.198,
+        "Coupling Offset (mm)": 0.031,
+        "Bearing Temp (°C)": 59.183,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 25,
+        "Date": "2026-07-15",
+        "Overall Vibration (mm/s)": 3.926,
+        "2X Harmonic (mm/s)": 1.158,
+        "Coupling Offset (mm)": 0.021,
+        "Bearing Temp (°C)": 60.509,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      },
+      {
+        "Week": 26,
+        "Date": "2026-07-22",
+        "Overall Vibration (mm/s)": 4.001,
+        "2X Harmonic (mm/s)": 1.155,
+        "Coupling Offset (mm)": 0.001,
+        "Bearing Temp (°C)": 60.783,
+        "Health Status": "NORMAL",
+        "Remark": ""
+      }
+    ],
+    "summary": {
+      "KPI": "Value",
+      "Monitoring Period (weeks)": 26,
+      "Total Downtime (hours)": 14,
+      "Period Hours": 4368,
+      "Availability (%)": 99.67948717948718,
+      "No. of Failures (period)": 1,
+      "MTBF (hours)": 4368,
+      "MTTR (hours)": 14,
+      "ALARM readings": 15,
+      "TRIP readings": 1,
+      "NORMAL readings": 10,
+      "PM Compliance (%)": 92,
+      "Production Loss (ton)": 532,
+      "Estimated Loss (k USD)": 478.8
+    }
+  }
+}

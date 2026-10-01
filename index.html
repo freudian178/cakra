@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HERMES — Executive Manufacturing Dashboard | Chandra Asri</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0b0f17; }
+        .widget-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        .widget-card:hover {
+            border-color: #374151;
+        }
+    </style>
+</head>
+<body class="text-slate-200 font-sans min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION -->
+    <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-[1600px] mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-orange-600 flex items-center justify-center font-black text-lg text-white shadow-lg shadow-orange-500/30">
+                    H
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-white tracking-wide">HERMES <span class="text-[10px] px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30 font-semibold">ENTERPRISE DASHBOARD</span></h1>
+                    <p class="text-[11px] text-slate-400">Chandra Asri Group — Operational Intelligence Hub</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Mode / Role Switcher -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-xs">
+                    <i class="fa-solid fa-user-shield text-orange-400"></i>
+                    <span class="text-slate-400">Role:</span>
+                    <select id="role-select" class="bg-transparent text-slate-200 font-semibold focus:outline-none cursor-pointer">
+                        <option value="executive" class="bg-slate-900">Executive / Plant Director</option>
+                        <option value="superintendent" class="bg-slate-900">Section Superintendent</option>
+                        <option value="engineer" class="bg-slate-900">Reliability Engineer</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-lg">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>System Normal</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- DASHBOARD CONTAINER -->
+    <main class="max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
+
+        <!-- TOP METRICS ROW (4 CARDS) -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="widget-card p-4 border-l-4 border-l-red-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Annual Financial Exposure</p>
+                        <h2 class="text-2xl font-black text-white mt-1">$26.35M</h2>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2"><i class="fa-solid fa-arrow-down-long text-red-400"></i> Calculated from 380 incident logs</p>
+            </div>
+
+            <div class="widget-card p-4 border-l-4 border-l-amber-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Annual Unplanned Downtime</p>
+                        <h2 class="text-2xl font-black text-white mt-1">886.7 hrs</h2>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2"><i class="fa-solid fa-chart-simple text-slate-400"></i> Total 2,261 hrs in 2.55 yrs</p>
+            </div>
+
+            <div class="widget-card p-4 border-l-4 border-l-purple-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Action Backlog (RCA/CAPA)</p>
+                        <h2 id="metric-overdue-count" class="text-2xl font-black text-purple-400 mt-1">183</h2>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2"><i class="fa-solid fa-hourglass-half text-purple-400"></i> Median Delay: <b class="text-slate-200">495 Days</b></p>
+            </div>
+
+            <div class="widget-card p-4 border-l-4 border-l-blue-500">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Detection Lead Time</p>
+                        <h2 class="text-2xl font-black text-blue-400 mt-1">9.6 Wks</h2>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2"><i class="fa-solid fa-check text-emerald-400"></i> Early detection window active</p>
+            </div>
+        </section>
+
+        <!-- MIDDLE GRID: VISUAL DASHBOARD WIDGETS (2 COLUMNS) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- WIDGET 1: Plant Financial Loss Distribution (Bar Chart) -->
+            <div class="widget-card p-5 lg:col-span-2 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-column text-orange-400"></i>
+                            Financial Loss Breakdown per Plant (Top Loss Drivers)
+                        </h3>
+                        <p class="text-xs text-slate-400">Distribution of accumulated dollar losses ($) across 12 petrochemical units.</p>
+                    </div>
+                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-700">Real-Time Aggregation</span>
+                </div>
+                <div class="h-64 w-full">
+                    <canvas id="plantLossChart"></canvas>
+                </div>
+            </div>
+
+            <!-- WIDGET 2: Top Critical Financial Alerts Widget -->
+            <div class="widget-card p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-fire text-red-400"></i>
+                            Critical Action Items ($)
+                        </h3>
+                        <span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold border border-red-500/30">Priority 1</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">High-impact anomalies requiring immediate Closed-Loop action.</p>
+                    
+                    <div id="top-alerts-container" class="space-y-2.5">
+                        <!-- Loaded dynamically via app.js -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECONDARY GRID: SENSOR TREND & FAILURE SIGNATURES -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- WIDGET 3: Sensor Trend Degradation (Area Chart) -->
+            <div class="widget-card p-5 lg:col-span-2">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-blue-400"></i>
+                            Equipment Degradation History (PI Tag Lead Time)
+                        </h3>
+                        <p class="text-xs text-slate-400">Condition monitoring progression from Normal to Alarm/Trip state.</p>
+                    </div>
+                    <span class="text-xs text-blue-400 font-mono font-bold" id="active-tag-label">BL-5702 (OPP Plant)</span>
+                </div>
+                <div class="h-56 w-full">
+                    <canvas id="sensor-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- WIDGET 4: Failure Signatures Distribution -->
+            <div class="widget-card p-5">
+                <h3 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-purple-400"></i>
+                    25 Failure Signatures Match
+                </h3>
+                <p class="text-xs text-slate-400 mb-4">Cross-plant recurring failure patterns.</p>
+                <div class="h-52 w-full flex items-center justify-center">
+                    <canvas id="signaturePieChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM TABLE: FULL INCIDENT WORKBENCH -->
+        <section class="widget-card p-5">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-emerald-400"></i>
+                        Closed-Loop Action Workbench (380 Incident Database)
+                    </h3>
+                    <p class="text-xs text-slate-400">Filter, inspect, and enforce RCA/CAPA deadlines across all plants.</p>
+                </div>
+
+                <div class="flex items-center gap-3 text-xs w-full md:w-auto">
+                    <select id="filter-plant" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:border-orange-500 focus:outline-none">
+                        <option value="ALL">All Plants (12 Units)</option>
+                        <option value="ZCU">ZCU (Zeta Cracker)</option>
+                        <option value="ARP">ARP (Aurora Resin)</option>
+                        <option value="OPP">OPP (Orion Polypropylene)</option>
+                        <option value="OP2">OP2 (Orion PE 2)</option>
+                        <option value="SMX">SMX (Styrene Monomer)</option>
+                        <option value="BRP">BRP (Butadiene Resin)</option>
+                        <option value="OP3">OP3 (Orion PE 3)</option>
+                        <option value="NUP">NUP (Nova Utility)</option>
+                        <option value="CRP">CRP (C4 Resin Plant)</option>
+                        <option value="BDX">BDX (Biodiesel Aux)</option>
+                        <option value="OPU">OPU (Orion PE Unit)</option>
+                        <option value="TKX">TKX (Tank Farm Ext)</option>
+                    </select>
+
+                    <select id="filter-status" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:border-orange-500 focus:outline-none">
+                        <option value="ALL">All Statuses</option>
+                        <option value="OVERDUE">Overdue Only</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="CLOSED">Closed / Resolved</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-slate-800">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-900 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                            <th class="py-3 px-4">Tag</th>
+                            <th class="py-3 px-4">Plant & Title</th>
+                            <th class="py-3 px-4">Failure Signature</th>
+                            <th class="py-3 px-4 text-right">Static Risk</th>
+                            <th class="py-3 px-4 text-right">Projected Loss ($)</th>
+                            <th class="py-3 px-4 text-center">Status</th>
+                            <th class="py-3 px-4 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incident-table-body" class="divide-y divide-slate-800/60 text-slate-300">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL DIAGNOSTICS & CLOSED-LOOP ACTION -->
+    <div id="diagnostics-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+            <div class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
+                <div class="flex items-center gap-3">
+                    <span id="modal-tag-badge" class="px-2.5 py-1 rounded bg-orange-500/20 text-orange-400 font-mono font-bold text-sm border border-orange-500/30">BL-5702</span>
+                    <div>
+                        <h3 id="modal-title" class="text-base font-bold text-white">Product Blower High Vibration</h3>
+                        <p id="modal-subtitle" class="text-xs text-slate-400">Plant OPP | Class A Equipment</p>
+                    </div>
+                </div>
+                <button id="close-modal-btn" class="text-slate-400 hover:text-white text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="widget-card p-4 border border-emerald-500/30 bg-emerald-950/10">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-calculator"></i> Hermes Loss Predictor</span>
+                        <div class="text-2xl font-black text-white my-1" id="modal-loss-val">$478,800</div>
+                        <p class="text-xs text-slate-300 font-mono bg-slate-950 p-2 rounded border border-slate-800" id="modal-loss-formula">14 hrs Downtime × 38 T/H × $900/Ton</p>
+                    </div>
+
+                    <div class="widget-card p-4 border border-blue-500/30 bg-blue-950/10">
+                        <span class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-brain"></i> Signature Match</span>
+                        <div class="text-xs text-slate-200 font-semibold" id="modal-signature-title">Coupling Misalignment</div>
+                        <p class="text-xs text-slate-300 mt-1 bg-slate-950 p-2 rounded border border-slate-800" id="modal-action-guidance">Action Guidance: Laser alignment & inspect soft-foot.</p>
+                    </div>
+                </div>
+
+                <div class="widget-card p-5 border border-purple-500/30 bg-purple-950/10">
+                    <h4 class="text-xs font-bold text-purple-300 uppercase tracking-wider mb-3"><i class="fa-solid fa-tasks"></i> Closed-Loop Assignment & Enforcement</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs mb-4">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Assigned PIC:</label>
+                            <input type="text" id="input-pic" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-slate-200 font-mono" value="ROT-01">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Hard Closure Deadline:</label>
+                            <input type="date" id="input-deadline" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-slate-200" value="2026-07-18">
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-xs mb-5" id="modal-checklist-container"></div>
+                    <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                        <button id="close-modal-secondary-btn" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs">Cancel</button>
+                        <button id="submit-action-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs"><i class="fa-solid fa-check"></i> Submit & Mark Risk Closed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS SCRIPTS -->
+    <script src="js/hermes-engine.js"></script>
+    <script src="js/chart-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

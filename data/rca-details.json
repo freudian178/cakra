@@ -1,0 +1,204 @@
+{
+    "PU-2101B": {
+        "ar_number": "AR-2026-ARP-0117",
+        "equipment_tag": "PU-2101B",
+        "plant": "ARP",
+        "title": "Feed Charge Pump PU-2101B Mechanical Seal Leakage",
+        "downtime_hours": 18.5,
+        "estimated_loss_usd": 226440,
+        "pic": "REL-05",
+        "discipline": "ROT",
+        "problem_statement": "Mechanical seal of Feed Charge Pump PU-2101B failed on 12-Mar-2026, causing seal leakage and an unplanned feed reduction to the ARP reactor section.",
+        "root_cause": "Premature mechanical seal failure caused by intermittent dry-running: suction cavitation during feed swings reduced NPSH and seal-flush flow dropped below the 6 L/min minimum, with no interlock to protect the seal.",
+        "chronology": [
+        "11-Mar-2026: Field operator noted minor seal weep on PU-2101B during routine round.",
+        "12-Mar-2026 02:15: Seal flush low-flow alarm annunciated; visible feed seal leak with low suction pressure. Pump auto-tripped on low discharge pressure.",
+        "12-Mar-2026 09:20: Seal cartridge & shaft sleeve inspected; seal faces heat-checked / worn (dry-running signature).",
+        "12-Mar-2026 20:45: New seal cartridge installed, pump commissioned, feed restored to ~13.6 T/H."
+        ],
+        "corrective_actions": [
+        {
+            "action": "Install seal-flush flow switch with DCS alarm on PU-2101B",
+            "plan_date": "2026-04-24",
+            "pic": "REL-05",
+            "status": "In Progress"
+        },
+        {
+            "action": "Add low-NPSH / loss-of-flush trip interlock in DCS",
+            "plan_date": "2026-05-24",
+            "pic": "REL-02",
+            "status": "Open"
+        },
+        {
+            "action": "Revise feed-swing SOP to cap ramp at 1 T/H per minute",
+            "plan_date": "2026-04-24",
+            "pic": "ROT-01",
+            "status": "Open"
+        },
+        {
+            "action": "Add seal-flush system (Plan 11) to PU-2101B PM check-sheet",
+            "plan_date": "2026-04-24",
+            "pic": "REL-05",
+            "status": "Open"
+        }
+        ]
+    },
+    "KO-3201": {
+        "ar_number": "AR-2026-ZCU-0142",
+        "equipment_tag": "KO-3201",
+        "plant": "ZCU",
+        "title": "Cracked Gas Compressor KO-3201 High Radial Vibration Trip",
+        "downtime_hours": 32.0,
+        "estimated_loss_usd": 1584000,
+        "pic": "REL-05",
+        "discipline": "ROT",
+        "problem_statement": "Cracked Gas Compressor KO-3201 tripped on high-high radial vibration on 29-Apr-2026 due to journal-bearing babbitt distress driven by water-contaminated lube oil.",
+        "root_cause": "Journal-bearing babbitt distress caused by degraded oil-film strength from water ingress via a leaking lube-oil cooler tube, undetected due to absence of online water-in-oil monitoring, leading to rising vibration and a high-high trip.",
+        "chronology": [
+        "27-Apr-2026: ZCU compression train running normal; KO-3201 drive-end (DE) radial vibration trending up (from 28 to 52 micron over 5 days).",
+        "29-Apr-2026 06:40: KO-3201 DE vibration reached high-high setpoint (75 micron); machinery protection system tripped the compressor.",
+        "29-Apr-2026 08:10: Lube-oil sample taken water content 1,800 ppm (spec < 500 ppm).",
+        "30-Apr-2026 14:40: New bearing installed, lube-oil system flushed, cooler tube plugged, train restarted."
+        ],
+        "corrective_actions": [
+        {
+            "action": "Repair leaking lube-oil cooler tube (plug + re-test)",
+            "plan_date": "2026-04-30",
+            "pic": "STA-02",
+            "status": "Closed"
+        },
+        {
+            "action": "Install online water-in-oil sensor on KO-3201 lube system",
+            "plan_date": "2026-06-30",
+            "pic": "REL-05",
+            "status": "In Progress"
+        },
+        {
+            "action": "Tighten KO-3201 vibration alert to 45 micron & shorten trend-review cadence",
+            "plan_date": "2026-05-30",
+            "pic": "REL-05",
+            "status": "Open"
+        },
+        {
+            "action": "Add lube-oil cooler dP & conductivity trend to reliability dashboard",
+            "plan_date": "2026-06-30",
+            "pic": "REL-02",
+            "status": "Open"
+        }
+        ]
+    },
+    "PM-4405B": {
+        "ar_number": "AR-2026-NUP-0089",
+        "equipment_tag": "PM-4405B",
+        "plant": "NUP",
+        "title": "Cooling Water Pump PM-4405B Motor Bearing Failure",
+        "downtime_hours": 8.0,
+        "estimated_loss_usd": 112000,
+        "pic": "REL-02",
+        "discipline": "ELE",
+        "problem_statement": "Cooling Water Pump PM-4405B motor tripped on 08-Jul-2026 due to drive-end bearing failure from grease degradation and an over-extended re-lubrication interval.",
+        "root_cause": "Motor drive-end bearing failure caused by grease degradation from an over-extended, non-risk-based re-lubrication interval, undetected due to absence of bearing-temperature trending, resulting in bearing overheating and motor trip.",
+        "chronology": [
+        "06-Jul-2026: Motor DE bearing temperature trending up (68 to 84 °C).",
+        "08-Jul-2026 13:20: Motor bearing high-temperature alarm; motor tripped on winding/bearing over-temp.",
+        "08-Jul-2026 16:00: Motor DE bearing found seized; grease degraded/carbonized.",
+        "08-Jul-2026 21:20: DE & NDE bearings replaced and re-greased; motor recommissioned."
+        ],
+        "corrective_actions": [
+        {
+            "action": "Revise PM-4405B re-lubrication interval to risk-based (4-monthly)",
+            "plan_date": "2026-07-31",
+            "pic": "REL-02",
+            "status": "In Progress"
+        },
+        {
+            "action": "Add motor bearing temperature trending & alert to CMMS",
+            "plan_date": "2026-08-31",
+            "pic": "REL-05",
+            "status": "Open"
+        },
+        {
+            "action": "Add PM-4405B/C to monthly vibration & thermography route",
+            "plan_date": "2026-07-31",
+            "pic": "REL-02",
+            "status": "Open"
+        }
+        ]
+    },
+    "HE-3301": {
+        "ar_number": "AR-2026-ZCU-0165",
+        "equipment_tag": "HE-3301",
+        "plant": "ZCU",
+        "title": "Feed/Effluent Heat Exchanger HE-3301 High Fouling",
+        "downtime_hours": 12.0,
+        "estimated_loss_usd": 183600,
+        "pic": "STA-02",
+        "discipline": "STA",
+        "problem_statement": "Feed/Effluent Heat Exchanger HE-3301 suffered accelerated tube-side fouling reducing duty and raising dP, forcing an unplanned isolation, cleaning and partial rate cut.",
+        "root_cause": "Accelerated tube-side coke/polymer fouling driven by higher-than-design feed heavy-ends, allowed to progress by the absence of a dP-based cleaning trigger and fouling KPI, causing duty loss, high dP and a forced rate cut.",
+        "chronology": [
+        "18-May-2026: HE-3301 tube-side dP rising (0.4 to 0.9 bar) and cold-outlet temperature falling.",
+        "21-May-2026 09:00: Preheat duty dropped ~35% below design; unit rate reduced. Exchanger isolated.",
+        "21-May-2026 11:30: Tube bundle inspected - heavy coke/polymer deposition on tube side.",
+        "21-May-2026 21:00: Bundle hydro-jet cleaned and returned to service; rate ramped back to 30 T/H."
+        ],
+        "corrective_actions": [
+        {
+            "action": "Add dP-based cleaning trigger & alarm for HE-3301",
+            "plan_date": "2026-06-22",
+            "pic": "STA-02",
+            "status": "In Progress"
+        },
+        {
+            "action": "Tighten feed heavy-ends control & filtration",
+            "plan_date": "2026-06-30",
+            "pic": "ROT-01",
+            "status": "Open"
+        },
+        {
+            "action": "Add fouling factor & duty KPI to reliability dashboard",
+            "plan_date": "2026-06-22",
+            "pic": "STA-02",
+            "status": "Open"
+        }
+        ]
+    },
+    "BL-5702": {
+        "ar_number": "AR-2026-OPP-0203",
+        "equipment_tag": "BL-5702",
+        "plant": "OPP",
+        "title": "Product Blower BL-5702 High Vibration (Coupling Misalignment)",
+        "downtime_hours": 14.0,
+        "estimated_loss_usd": 478800,
+        "pic": "ROT-01",
+        "discipline": "ROT",
+        "problem_statement": "Product Blower BL-5702 tripped on high vibration on 17-Jun-2026 due to coupling misalignment and a worn coupling element, halting the OPP powder-handling section.",
+        "root_cause": "High vibration from coupling misalignment aggravated by soft-foot and an over-aged elastomer coupling element, undetected because periodic alignment/soft-foot checks were absent from the PM and the vibration route interval was too long.",
+        "chronology": [
+        "15-Jun-2026: BL-5702 vibration trending up (4.2 to 8.5 mm/s) with 2X harmonic rising.",
+        "17-Jun-2026 04:30: Vibration reached alarm (11 mm/s); blower stopped to prevent damage.",
+        "17-Jun-2026 07:00: Coupling element found worn/cracked; laser alignment showed 0.35 mm offset (spec < 0.05 mm).",
+        "17-Jun-2026 18:30: Element replaced, re-aligned to < 0.05 mm, blower restarted to 38 T/H."
+        ],
+        "corrective_actions": [
+        {
+            "action": "Add periodic laser alignment & soft-foot check to BL-5702 PM",
+            "plan_date": "2026-07-18",
+            "pic": "ROT-01",
+            "status": "In Progress"
+        },
+        {
+            "action": "Track coupling element life & replace at 12 months",
+            "plan_date": "2026-07-18",
+            "pic": "REL-05",
+            "status": "Open"
+        },
+        {
+            "action": "Shorten BL-5702 vibration route to weekly",
+            "plan_date": "2026-07-18",
+            "pic": "REL-05",
+            "status": "Open"
+        }
+        ]
+    }
+}
