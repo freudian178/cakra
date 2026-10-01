@@ -1,4 +1,3 @@
-
 /* =====================================================
    CAKRA — INTELLIGENT MANUFACTURING HUB
    Single-file interactive prototype
@@ -17,249 +16,82 @@ const C = {
   page: "dashboard",
   month: "all",
   tasks: [],
-  key: "cakra-actions-v5"
+  key: "cakra-actions-v5",
+  selectedTrendParam: null,
+  assigningActionIndex: null,
 };
 
-const $ = s => document.querySelector(s);
-const num = v => Number(v) || 0;
-const usd = v => "$" + num(v).toLocaleString("en-US", {
-  maximumFractionDigits: 0
+const $ = (s) => document.querySelector(s);
+const num = (v) => Number(v) || 0;
+const usd = (v) =>
+  "$" +
+  num(v).toLocaleString("en-US", {
+    maximumFractionDigits: 0,
+  });
+const esc = (v) =>
+  String(v ?? "").replace(
+    /[&<>"']/g,
+    (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[x],
+  );
+
+/*
+  Threshold configuration per equipment tag.
+  Direction is "high" when trip > alarm (rising value is bad),
+  "low" when trip < alarm (dropping value is bad).
+  The baseline is computed at runtime from historical NORMAL readings.
+*/
+const param = (key, label, unit, alarm, trip) => ({
+  key,
+  label,
+  unit,
+  alarm,
+  trip,
+  direction: trip > alarm ? "high" : "low",
+  jsonKey: key,
+  base: null,
 });
-const esc = v => String(v ?? "").replace(/[&<>"']/g,
-  x => ({"&":"&amp;","<":"&lt;",">":"&gt;",
-         '"':"&quot;","'":"&#39;"}[x]));
 
 const machines = {
-
-    "PU-2101B": {
-        params: [
-            {
-            key:"Overall Vibration (mm/s)",
-            label:"Overall Vibration",
-            unit:"mm/s",
-            alarm:7,
-            trip:11,
-            direction:"high",
-            jsonKey:"Overall Vibration (mm/s)",
-            base:null
-            },
-            {
-            key:"Seal Flush Flow (L/min)",
-            label:"Seal Flush Flow",
-            unit:"L/min",
-            alarm:5,
-            trip:4,
-            direction:"low",
-            jsonKey:"Seal Flush Flow (L/min)",
-            base:null
-            },
-            {
-            key:"Discharge Pressure (barg)",
-            label:"Discharge Pressure",
-            unit:"barg",
-            alarm:8.5,
-            trip:7.5,
-            direction:"low",
-            jsonKey:"Discharge Pressure (barg)",   
-            base:null
-            },
-            {
-            key:"Bearing Temp (°C)",
-            label:"Bearing Temperature",
-            unit:"°C",
-            alarm:80,
-            trip:95,
-            direction:"high",
-            jsonKey:"Bearing Temp (°C)",
-            base:null
-            }
-        ]
-    },
-
-
-    "KO-3201": {
-        params:    [
-        {
-        key:"DE Radial Vibration (micron)",
-        label:"DE Radial Vibration",
-        unit:"micron",
-        alarm:45,
-        trip:75,
-        direction:"high",
-        jsonKey:"DE Radial Vibration (micron)",
-        base:null
-        },
-        {
-        key:"Lube Oil Water Content (ppm)",
-        label:"Lube Oil Water Content",
-        unit:"ppm",
-        alarm:500,
-        trip:1500,
-        direction:"high",
-        jsonKey:"Lube Oil Water Content (ppm)",
-        base:null
-        },
-        {
-        key:"Lube Oil Supply Press (barg)",
-        label:"Lube Oil Supply Pressure",
-        unit:"barg",
-        alarm:1.4,
-        trip:1.1,
-        direction:"low",
-        jsonKey:"Lube Oil Supply Press (barg)",
-        base:null
-        },
-        {
-        key:"Bearing Metal Temp (°C)",
-        label:"Bearing Metal Temperature",
-        unit:"°C",
-        alarm:95,
-        trip:110,
-        direction:"high",
-        jsonKey:"Bearing Metal Temp (°C)",
-        base:null
-        }
-        ],
-    },
-
-
-    "PM-4405B":{
-        params:[
-        {
-        key:"Motor DE Bearing Temp (°C)",
-        label:"Motor DE Bearing Temp",
-        unit:"°C",
-        alarm:75,
-        trip:90,
-        direction:"high",
-        jsonKey:"Motor DE Bearing Temp (°C)",
-        base:null
-        },
-        {
-        key:"Motor Vibration (mm/s)",
-        label:"Motor Vibration",
-        unit:"mm/s",
-        alarm:5,
-        trip:8,
-        direction:"high",
-        jsonKey:"Motor Vibration (mm/s)",
-        base:null
-        },
-        {
-        key:"Motor Ampere (A)",
-        label:"Motor Ampere",
-        unit:"A",
-        alarm:150,
-        trip:165,
-        direction:"high",
-        jsonKey:"Motor Ampere (A)",
-        base:null
-        },
-        {
-        key:"Winding Temp (°C)",
-        label:"Winding Temperature",
-        unit:"°C",
-        alarm:120,
-        trip:140,
-        direction:"high",
-        jsonKey:"Winding Temp (°C)",
-        base:null
-        }
-        ],
-    },
-
-
-    "HE-3301": {
-        params: [
-        {
-        key:"Tube-side dP (bar)",
-        label:"Tube-side dP",
-        unit:"bar",
-        alarm:0.6,
-        trip:0.9,
-        direction:"high",  
-        jsonKey:"Tube-side dP (bar)",
-        base:null
-        },
-        {
-        key:"Heat Duty (% design)",
-        label:"Heat Duty",
-        unit:"%",
-        alarm:90,
-        trip:70,
-        direction:"low",
-        jsonKey:"Heat Duty (% design)",
-        base:null
-        },
-        {
-        key:"Cold Outlet Temp (°C)",
-        label:"Cold Outlet Temp",
-        unit:"°C",
-        alarm:110,
-        trip:95,
-        direction:"low",
-        jsonKey:"Cold Outlet Temp (°C)",   
-        base:null
-        },
-        {
-        key:"Feed Heavy-ends (%)",
-        label:"Feed Heavy Ends",
-        unit:"%",
-        alarm:1.5,
-        trip:2.4,
-        direction:"high",
-        jsonKey:"Feed Heavy-ends (%)",
-        base:null
-        }
-        ]
-    },
-
-
-    "BL-5702": {
-        params: [
-        {
-        key:"Overall Vibration (mm/s)",
-        label:"Overall Vibration",
-        unit:"mm/s",
-        alarm:7,
-        trip:11,
-        direction:"high",
-        jsonKey:"Overall Vibration (mm/s)",
-        base:null
-        },
-        {
-        key:"2X Harmonic (mm/s)",
-        label:"2X Harmonic",
-        unit:"mm/s",
-        alarm:3,
-        trip:5,
-        direction:"high",
-        jsonKey:"2X Harmonic (mm/s)",
-        base:null
-        },
-        {
-        key:"Coupling Offset (mm)",
-        label:"Coupling Offset",
-        unit:"mm",
-        alarm:0.05,
-        trip:0.3,
-        direction:"high",
-        jsonKey:"Coupling Offset (mm)",
-        base:null
-        },
-        {
-        key:"Bearing Temp (°C)",
-        label:"Bearing Temperature",
-        unit:"°C",
-        alarm:80,
-        trip:95,
-        direction:"high",
-        jsonKey:"Bearing Temp (°C)",
-        base:null
-        }
-        ]
-
-    }
+  "PU-2101B": {
+    params: [
+      param("Overall Vibration (mm/s)", "Overall Vibration", "mm/s", 7, 11),
+      param("Seal Flush Flow (L/min)", "Seal Flush Flow", "L/min", 5, 4),
+      param("Discharge Pressure (barg)", "Discharge Pressure", "barg", 8.5, 7.5),
+      param("Bearing Temp (°C)", "Bearing Temperature", "°C", 80, 95),
+    ],
+  },
+  "KO-3201": {
+    params: [
+      param("DE Radial Vibration (micron)", "DE Radial Vibration", "micron", 45, 75),
+      param("Lube Oil Water Content (ppm)", "Lube Oil Water Content", "ppm", 500, 1500),
+      param("Lube Oil Supply Press (barg)", "Lube Oil Supply Pressure", "barg", 1.4, 1.1),
+      param("Bearing Metal Temp (°C)", "Bearing Metal Temperature", "°C", 95, 110),
+    ],
+  },
+  "PM-4405B": {
+    params: [
+      param("Motor DE Bearing Temp (°C)", "Motor DE Bearing Temp", "°C", 75, 90),
+      param("Motor Vibration (mm/s)", "Motor Vibration", "mm/s", 5, 8),
+      param("Motor Ampere (A)", "Motor Ampere", "A", 150, 165),
+      param("Winding Temp (°C)", "Winding Temperature", "°C", 120, 140),
+    ],
+  },
+  "HE-3301": {
+    params: [
+      param("Tube-side dP (bar)", "Tube-side dP", "bar", 0.6, 0.9),
+      param("Heat Duty (% design)", "Heat Duty", "%", 90, 70),
+      param("Cold Outlet Temp (°C)", "Cold Outlet Temp", "°C", 110, 95),
+      param("Feed Heavy-ends (%)", "Feed Heavy Ends", "%", 1.5, 2.4),
+    ],
+  },
+  "BL-5702": {
+    params: [
+      param("Overall Vibration (mm/s)", "Overall Vibration", "mm/s", 7, 11),
+      param("2X Harmonic (mm/s)", "2X Harmonic", "mm/s", 3, 5),
+      param("Coupling Offset (mm)", "Coupling Offset", "mm", 0.05, 0.3),
+      param("Bearing Temp (°C)", "Bearing Temperature", "°C", 80, 95),
+    ],
+  },
 };
 
 /*
@@ -269,331 +101,195 @@ const machines = {
 */
 
 const USERS = [
-  {id:"MGR-01",role:"manager",password:"demo123"},
-  {id:"ROT-01",role:"staff",password:"demo123"},
-  {id:"REL-05",role:"staff",password:"demo123"},
-  {id:"REL-02",role:"staff",password:"demo123"}
+  { id: "MGR-01", role: "manager", password: "demo123" },
+  { id: "ROT-01", role: "staff", password: "demo123" },
+  { id: "REL-05", role: "staff", password: "demo123" },
+  { id: "REL-02", role: "staff", password: "demo123" },
 ];
 
-/* ---------------- DATA ---------------- */
+/* ---------------- DATA LOADING ---------------- */
 
 async function load(path) {
-    const r = await fetch(path);
-    if (!r.ok) throw Error("Failed to load " + path);
-    return r.json();
+  const r = await fetch(path);
+  if (!r.ok) throw Error("Failed to load " + path);
+  return r.json();
 }
 
-function health(v,base,alarm,trip){
+/* ---------------- HEALTH CALCULATION ---------------- */
 
-    const s = trip > alarm ? 1 : -1;
-    const d = s*(v-base);
-    const a = s*(alarm-base);
-    const t = s*(trip-base);
-    if(a<=0 || t<=a){
-        return null;
-    }
-    const idx = d <= a
-    ?
-    (d/a)*50
-    :
-    50 + ((d-a)/(t-a))*50;
-    return 100 - Math.max(
-    0,
-    Math.min(100,idx)
-    );
+// Health score 0-100 (100 = at baseline, 50 = alarm, 0 = trip).
+// Returns null when the baseline/alarm/trip combination is invalid.
+function health(v, base, alarm, trip) {
+  const dir = trip > alarm ? 1 : -1;
+  const d = dir * (v - base);
+  const a = dir * (alarm - base);
+  const t = dir * (trip - base);
+  if (a <= 0 || t <= a) return null;
+
+  const idx = d <= a ? (d / a) * 50 : 50 + ((d - a) / (t - a)) * 50;
+  return 100 - Math.max(0, Math.min(100, idx));
 }
 
-function parameterStatus(v,alarm,trip){
-    if(trip > alarm){
-        if(v >= trip)
-            return "TRIP";
-        if(v >= alarm)
-            return "ALARM";
-    }
-    else{
-        if(v <= trip)
-            return "TRIP";
-        if(v <= alarm)
-            return "ALARM";
-    }
-    return "NORMAL";
-
+function parameterStatus(v, alarm, trip) {
+  const rising = trip > alarm;
+  if (rising ? v >= trip : v <= trip) return "TRIP";
+  if (rising ? v >= alarm : v <= alarm) return "ALARM";
+  return "NORMAL";
 }
 
-function calculateMachineHealth(tag){
+function median(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
 
+// Baseline = median of historical readings that were in NORMAL state.
+// Falls back to a fraction of the alarm limit when no normal data exists.
+function baselineFor(p, history) {
+  if (p.base !== null) return p.base;
 
-    const config = machines[tag];
+  const normal = history
+    .map((row) => Number(row[p.jsonKey]))
+    .filter((v) => Number.isFinite(v) && parameterStatus(v, p.alarm, p.trip) === "NORMAL");
 
-    if(!config) return null;
+  if (normal.length) return median(normal);
+  return p.direction === "high" ? p.alarm * 0.5 : p.alarm * 1.5;
+}
 
+function machineStatus(score) {
+  if (score <= 0) return "TRIP";
+  if (score <= 50) return "ALARM";
+  return "NORMAL";
+}
 
-    const history =
-    C.equipment[tag]?.history || [];
+function calculateMachineHealth(tag) {
+  const config = machines[tag];
+  if (!config) return null;
 
+  const history = C.equipment[tag]?.history || [];
+  const latest = history[history.length - 1];
+  if (!latest) return null;
 
-    const latest =
-    history[history.length-1];
-
-
-    if(!latest) return null;
-
-
-    let results=[];
-
-
-
-    config.params.forEach(p=>{
-
-
-    let value =
-    Number(latest[p.jsonKey]);
-
-
-
-    if(!Number.isFinite(value))
-    return;
-
-
-
-    let base=p.base;
-
-
-
-    // baseline median dari kondisi normal
-    if(base===null){
-
-
-    let normal =
-    history
-    .filter(row=>{
-
-
-    let s =
-    parameterStatus(
-    Number(row[p.jsonKey]),
-    p.alarm,
-    p.trip
-    );
-
-
-    return s==="NORMAL";
-
-
-    })
-    .map(row=>Number(row[p.jsonKey]))
-    .filter(Number.isFinite);
-
-
-
-    if(normal.length){
-
-
-    normal.sort((a,b)=>a-b);
-
-
-    base =
-    normal[
-    Math.floor(normal.length/2)
-    ];
-
-
-    }
-
-    else{
-
-
-    // fallback
-    base =
-    p.direction==="high"
-    ?
-    p.alarm*0.5
-    :
-    p.alarm*1.5;
-
-
-    }
-
-
-    }
-
-
-
-
-    let h =
-    health(
-    value,
-    base,
-    p.alarm,
-    p.trip
-    );
-
-
+  const results = [];
+  config.params.forEach((p) => {
+    const value = Number(latest[p.jsonKey]);
+    if (!Number.isFinite(value)) return;
 
     results.push({
-
-    label:p.label,
-
-    value:value,
-
-    unit:p.unit,
-
-    alarm:p.alarm,
-
-    trip:p.trip,
-
-    health:h,
-
-    state:
-    parameterStatus(
-    value,
-    p.alarm,
-    p.trip
-    )
-
+      label: p.label,
+      value,
+      unit: p.unit,
+      alarm: p.alarm,
+      trip: p.trip,
+      health: health(value, baselineFor(p, history), p.alarm, p.trip),
+      state: parameterStatus(value, p.alarm, p.trip),
     });
+  });
+  if (!results.length) return null;
 
+  // A parameter whose health cannot be computed counts as 0 (worst case).
+  const score = (r) => r.health ?? 0;
+  const machineHealth = Math.min(...results.map(score));
+  const governing = results.reduce((a, b) => (score(a) < score(b) ? a : b));
 
-    });
-
-
-
-    if(!results.length)
-    return null;
-
-
-
-    let machineHealth =
-    Math.min(
-    ...results.map(x=>x.health)
-    );
-
-
-
-    let governing =
-    results.reduce(
-    (a,b)=>
-    a.health<b.health?a:b
-    );
-
-
-
-    return {
-
-
-    health:
-    Math.round(machineHealth),
-
-
-    status:
-    machineHealth<=0
-    ?
-    "TRIP"
-    :
-    machineHealth<=50
-    ?
-    "ALARM"
-    :
-    "NORMAL",
-
-
+  return {
+    health: Math.round(machineHealth),
+    status: machineStatus(machineHealth),
     governing,
+    parameters: results,
+  };
+}
 
+/* ---------------- INCIDENT PARSING ---------------- */
 
-    parameters:results
+const PLANT_KEYS = ["Plant", "Plant / Unit", "PLANT"];
 
+function plantOf(row) {
+  const key = PLANT_KEYS.find((k) => row[k]);
+  return key ? String(row[key]).trim() : "";
+}
 
-    };
+// The Excel-exported JSON keeps the real column names in one "header" row,
+// stored under generic keys ("Unnamed: 0", "Unnamed: 1", ...).
+function findHeaderRow(rows) {
+  return rows.find((r) => {
+    if (!r || typeof r !== "object") return false;
+    const values = Object.values(r);
+    return values.includes("AR No.") && values.includes("Tag Number");
+  });
+}
 
+function rowsFromHeader(rows, header) {
+  const columns = Object.entries(header).map(([key, name]) => [
+    key,
+    String(name).replace("Unnamed: ", "").trim(),
+  ]);
 
+  return rows
+    .slice(rows.indexOf(header) + 1)
+    .map((row) => Object.fromEntries(columns.map(([key, name]) => [name, row[key]])))
+    .filter((r) => r["AR No."] || r["Tag Number"]);
 }
 
 function normalizeIncidents(rows) {
   if (!Array.isArray(rows)) return [];
-  const header = rows.find(r =>
-    Object.values(r).includes("AR No.") &&
-    Object.values(r).includes("Tag Number")
-  );
-  if (!header) return rows;
 
-  const idx = rows.indexOf(header);
-  return rows.slice(idx + 1).map(row => {
+  const header = findHeaderRow(rows);
+  const records = header ? rowsFromHeader(rows, header) : rows;
 
-    const out = {};
+  return records.map((r) => ({ ...r, Plant: plantOf(r) }));
+}
 
-    Object.keys(header).forEach(k => {
+/* ---------------- BOOT & STORAGE ---------------- */
 
-        const clean =
-        String(header[k])
-        .replace("Unnamed: ","")
-        .trim();
+function loadTasks() {
+  try {
+    const tasks = JSON.parse(localStorage.getItem(C.key) || "[]");
+    return Array.isArray(tasks) ? tasks : [];
+  } catch (err) {
+    console.warn("Saved tasks could not be read, starting empty.", err);
+    return [];
+  }
+}
 
-        out[clean] = row[k];
-
-    });
-
-
-    // normalisasi nama plant
-    out.Plant =
-        out.Plant ||
-        out["Plant / Unit"] ||
-        out["PLANT"] ||
-        "";
-
-    return out;
-
-    })
-    .filter(r => r["AR No."] || r["Tag Number"]);
+function save() {
+  try {
+    localStorage.setItem(C.key, JSON.stringify(C.tasks));
+  } catch (err) {
+    console.warn("Tasks could not be saved.", err);
+  }
 }
 
 async function boot() {
   try {
-    const [e,p,i,r] = await Promise.all([
+    const [equipment, production, incidentRows, rca] = await Promise.all([
       load("data/equipment-performance.json"),
       load("data/production-data.json"),
       load("data/incident-summary.json"),
-      load("data/rca-details.json")
+      load("data/rca-details.json"),
     ]);
-    C.equipment = e;
-    C.production = p;
-    C.incidents = normalizeIncidents(i);
-    C.rca = r;
-    C.tasks = JSON.parse(localStorage.getItem(C.key) || "[]");
-    if (!Array.isArray(C.tasks)) C.tasks = [];
+    C.equipment = equipment;
+    C.production = production;
+    C.incidents = normalizeIncidents(incidentRows);
+    C.rca = rca;
+    C.tasks = loadTasks();
     installStyles();
     render();
-  } catch(err) {
+  } catch (err) {
     document.body.textContent = "CAKRA error: " + err.message;
     console.error(err);
   }
 }
 
-function save() {
-  localStorage.setItem(C.key,JSON.stringify(C.tasks));
+function getPlant(row) {
+  return plantOf(row).toUpperCase();
 }
 
-function getPlant(row){
-  return String(
-    row["Plant"] ||
-    row["Plant / Unit"] ||
-    row["PLANT"] ||
-    ""
-  ).trim().toUpperCase();
-}
-
-
-function incidents(plant=C.plant) {
-
-  return C.incidents.filter(x =>
-    getPlant(x) === String(plant)
-      .trim()
-      .toUpperCase()
-  );
-
+function incidents(plant = C.plant) {
+  return C.incidents.filter((x) => getPlant(x) === String(plant).trim().toUpperCase());
 }
 
 function selectedIncidents() {
-  return incidents().filter(x => x["Tag Number"] === C.tag);
+  return incidents().filter((x) => x["Tag Number"] === C.tag);
 }
 
 function selectedEquipment() {
@@ -605,40 +301,37 @@ function selectedRCA() {
 }
 
 function tagsForPlant() {
-  const actual = Object.keys(C.equipment).filter(tag =>
-    (C.equipment[tag].info?.["Plant / Unit"] || "")
-      .includes("(" + C.plant + ")")
+  const actual = Object.keys(C.equipment).filter((tag) =>
+    (C.equipment[tag]?.info?.["Plant / Unit"] || "").includes("(" + C.plant + ")"),
   );
   const historical = incidents()
-    .map(x => x["Tag Number"])
+    .map((x) => x["Tag Number"])
     .filter(Boolean);
-  return [...new Set([...actual,...historical])].sort(
-    (a,b) => (a === "PU-2101B" ? -1 :
-              b === "PU-2101B" ? 1 : a.localeCompare(b))
+  return [...new Set([...actual, ...historical])].sort((a, b) =>
+    a === "PU-2101B" ? -1 : b === "PU-2101B" ? 1 : a.localeCompare(b),
   );
 }
 
-function latestHistory(tag=C.tag) {
+function latestHistory(tag = C.tag) {
   const h = C.equipment[tag]?.history || [];
-  return h.length ? h[h.length-1] : null;
+  return h.length ? h[h.length - 1] : null;
 }
 
-function status(value,limit) {
+function limitStatus(value, limit) {
   if (!Number.isFinite(Number(value))) return "UNKNOWN";
   const x = Number(value);
   if (limit.direction === "high")
-    return x >= limit.trip ? "TRIP" :
-           x >= limit.alarm ? "ALARM" : "NORMAL";
-  return x <= limit.trip ? "TRIP" :
-         x <= limit.alarm ? "ALARM" : "NORMAL";
+    return x >= limit.trip ? "TRIP" : x >= limit.alarm ? "ALARM" : "NORMAL";
+  return x <= limit.trip ? "TRIP" : x <= limit.alarm ? "ALARM" : "NORMAL";
 }
 
-function gauge(value,limit) {
+function gauge(value, limit) {
   if (!Number.isFinite(Number(value))) return null;
   const x = Number(value);
-  const severity = limit.direction === "high"
-    ? (x-limit.alarm)/(limit.trip-limit.alarm)
-    : (limit.alarm-x)/(limit.alarm-limit.trip);
+  const severity =
+    limit.direction === "high"
+      ? (x - limit.alarm) / (limit.trip - limit.alarm)
+      : (limit.alarm - x) / (limit.alarm - limit.trip);
 
   /*
     Alarm is displayed at 70%; trip at 100%.
@@ -648,7 +341,7 @@ function gauge(value,limit) {
     percentage without a validated normal baseline.
   */
   if (severity < 0) return null;
-  return Math.min(100,Math.max(70,70+30*severity));
+  return Math.min(100, Math.max(70, 70 + 30 * severity));
 }
 
 /* ---------------- AUTH ---------------- */
@@ -656,7 +349,7 @@ function gauge(value,limit) {
 function login() {
   const id = $("#login-id").value.trim().toUpperCase();
   const pw = $("#login-pass").value;
-  const u = USERS.find(x => x.id === id && x.password === pw);
+  const u = USERS.find((x) => x.id === id && x.password === pw);
   if (!u) {
     $("#login-error").textContent = "Invalid demo credentials.";
     return;
@@ -702,66 +395,63 @@ function renderLogin() {
 
 /* ---------------- NAVIGATION ---------------- */
 
+function pageLabel(page) {
+  return (
+    {
+      selection: "plant selection",
+      "plant-performance": "plant performance",
+      "equipment-performance": "equipment performance",
+      incidents: "incident center",
+      diagnostics: "ai diagnostics",
+      tasks: "action hub",
+    }[page] || page
+  );
+}
 function go(page) {
   C.page = page;
+  C.assigningActionIndex = null;
   render();
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 }
-
 function choosePlant(p) {
   C.plant = p;
   C.tag = tagsForPlant()[0] || "";
-  go("dashboard");
+  C.selectedTrendParam = null;
+  go("plant-performance");
 }
-
 function chooseTag(tag) {
-    console.log("TAG DIPILIH:", tag);
+  console.log("TAG DIPILIH:", tag);
   C.tag = tag;
-  C.selectedTrendParam=null;
+  C.selectedTrendParam = null;
+  C.assigningActionIndex = null;
   render();
 }
-
-function renderSelection() {
-  const plants = [...new Set(
-    C.incidents.map(x => x.Plant).filter(Boolean)
-  )].sort();
-
-  return `
-    <div class="eyebrow">MANUFACTURING WORKSPACE</div>
-    <h1>Select Plant</h1>
-    <p class="muted">Choose the plant you want to monitor.</p>
-    <div class="plant-grid">
-      ${plants.map(p => `
-        <button class="plant-card" onclick="choosePlant('${esc(p)}')">
-          <div class="plant-icon">▦</div>
-          <h2>${esc(p)}</h2>
-          <p>${incidents(p).length} historical incidents</p>
-          <span>Open workspace →</span>
-        </button>`).join("")}
-    </div>`;
+function openDiagnostics(tag = C.tag) {
+  if (tag) C.tag = tag;
+  C.assigningActionIndex = null;
+  go("diagnostics");
 }
-
-function navButton(page,title) {
-  return `<button class="nav ${C.page===page?"active":""}"
+function navButton(page, title) {
+  return `<button class="nav ${C.page === page ? "active" : ""}"
     onclick="go('${page}')">${title}</button>`;
 }
-
 function shell(content) {
   return `
     <div class="shell">
       <aside class="sidebar">
         <div class="logo">CAKRA<span>.</span></div>
         <p class="side-caption">INTELLIGENT MANUFACTURING</p>
-        ${navButton("selection","▦  Plant Selection")}
-        ${navButton("dashboard","◫  Performance Dashboard")}
-        ${navButton("incidents","⚑  Incident Center")}
-        ${navButton("diagnostics","◇  AI Diagnostics")}
-        ${navButton("tasks","☷  Action Hub")}
+        ${navButton("selection", "▦  Plant Selection")}
+        ${navButton("plant-performance", "◫  Plant Performance")}
+        ${navButton("equipment-performance", "◈  Equipment Performance")}
+        ${navButton("incidents", "⚑  Incident Center")}
+        ${navButton("diagnostics", "◇  AI Diagnostics")}
+        ${navButton("tasks", "☷  Action Hub")}
       </aside>
       <div class="main">
         <header class="topbar">
           <div><strong>${esc(C.plant)} Workspace</strong>
-            <span class="muted"> / ${esc(C.page)}</span></div>
+            <span class="muted"> / ${esc(pageLabel(C.page))}</span></div>
           <div class="user-area">
             <span class="role-badge">${esc(C.role.toUpperCase())}</span>
             <strong>${esc(C.user)}</strong>
@@ -772,10 +462,31 @@ function shell(content) {
       </div>
     </div>`;
 }
+function renderSelection() {
+  const plants = [...new Set(C.incidents.map((x) => x.Plant).filter(Boolean))].sort();
+
+  return `
+    <div class="eyebrow">MANUFACTURING WORKSPACE</div>
+    <h1>Select Plant</h1>
+    <p class="muted">Choose the plant you want to monitor.</p>
+    <div class="plant-grid">
+      ${plants
+        .map(
+          (p) => `
+        <button class="plant-card" onclick="choosePlant('${esc(p)}')">
+          <div class="plant-icon">▦</div>
+          <h2>${esc(p)}</h2>
+          <p>${incidents(p).length} historical incidents</p>
+          <span>Open workspace →</span>
+        </button>`,
+        )
+        .join("")}
+    </div>`;
+}
 
 /* ---------------- DASHBOARD ---------------- */
 
-function card(label,value,detail="") {
+function card(label, value, detail = "") {
   return `<div class="card kpi">
     <div class="big-number">${esc(value)}</div>
     <p class="muted">${esc(label)}</p>
@@ -783,114 +494,38 @@ function card(label,value,detail="") {
   </div>`;
 }
 
-function renderGauge(machine){
-    let value = machine.health;
+function renderGauge(machine) {
+  const value = machine.health;
+  const color = value <= 0 ? "#DC2626" : value <= 50 ? "#D97706" : "#16A34A";
+  const angle = Math.PI * (1 - value / 100);
+  const needleX = 120 + 70 * Math.cos(angle);
+  const needleY = 120 - 70 * Math.sin(angle);
 
-
-    let color =
-    value<=0
-    ?
-    "#DC2626"
-    :
-    value<=50
-    ?
-    "#D97706"
-    :
-    "#16A34A";
-
-
-
-    return `
-
-
+  return `
     <div class="gauge-box">
-
-
-    <svg viewBox="0 0 240 150">
-
-
-    <path
-    d="M30 120 A90 90 0 0 1 210 120"
-    stroke="#E5E7EB"
-    stroke-width="20"
-    fill="none"
-    />
-
-
-
-    <path
-    d="M30 120 A90 90 0 0 1 210 120"
-    stroke="${color}"
-    stroke-width="20"
-    fill="none"
-    pathLength="100"
-    stroke-dasharray="${value} 100"
-    />
-
-
-    <line
-    x1="120"
-    y1="120"
-    x2="
-    ${120+70*Math.cos(Math.PI*(1-value/100))}
-    "
-    y2="
-    ${120-70*Math.sin(Math.PI*(1-value/100))}
-    "
-    stroke="#111827"
-    stroke-width="4"
-    />
-
-
-    <circle
-    cx="120"
-    cy="120"
-    r="7"
-    fill="#111827"
-    />
-
-
-    <text
-    x="120"
-    y="95"
-    text-anchor="middle"
-    font-size="32"
-    font-weight="700">
-
-    ${Math.round(value)}%
-
-    </text>
-
-
-
-    <text
-    x="120"
-    y="150"
-    text-anchor="middle"
-    font-size="14"
-    font-weight="500"
-    fill="#111827">
-
-    ${machine.status}
-
-    </text>
-
-
-
-    </svg>
-
-
-
-    </div>
-
-
-    `;
-
+      <svg viewBox="0 0 240 150">
+        <path d="M30 120 A90 90 0 0 1 210 120"
+          stroke="#E5E7EB" stroke-width="20" fill="none" />
+        <path d="M30 120 A90 90 0 0 1 210 120"
+          stroke="${color}" stroke-width="20" fill="none"
+          pathLength="100" stroke-dasharray="${value} 100" />
+        <line x1="120" y1="120" x2="${needleX}" y2="${needleY}"
+          stroke="#111827" stroke-width="4" />
+        <circle cx="120" cy="120" r="7" fill="#111827" />
+        <text x="120" y="95" text-anchor="middle" font-size="32" font-weight="700">
+          ${Math.round(value)}%
+        </text>
+        <text x="120" y="150" text-anchor="middle" font-size="14" font-weight="500" fill="#111827">
+          ${esc(machine.status)}
+        </text>
+      </svg>
+    </div>`;
 }
 
 function renderEquipment() {
   const e = selectedEquipment();
-  if (!e) return `
+  if (!e) {
+    return `
     <div class="card">
       <h3>Equipment Monitoring</h3>
       <span class="badge warning">DATA UNAVAILABLE</span>
@@ -900,17 +535,17 @@ function renderEquipment() {
       </p>
       <p>Historical incidents remain accessible below.</p>
     </div>`;
-    const machine = calculateMachineHealth(C.tag);
-    const latest = latestHistory();
-    if(!machine){
-        return `
+  }
+
+  const machine = calculateMachineHealth(C.tag);
+  const latest = latestHistory();
+  if (!machine) {
+    return `
         <div class="card">
-            <h3>${C.tag}</h3>
+            <h3>${esc(C.tag)}</h3>
             <p class="muted"> No validated telemetry available.</p>
         </div>`;
-    }
-    
-    const worst = machine.governing;
+  }
 
   return `
     <div class="card">
@@ -919,7 +554,7 @@ function renderEquipment() {
           <p class="eyebrow">EQUIPMENT HEALTH</p>
           <h3>${esc(C.tag)} — Threshold Monitoring</h3>
           <p class="muted">Latest historical reading:
-            ${esc(latest?.Date||"N/A")}</p>
+            ${esc(latest?.Date || "N/A")}</p>
         </div>
       </div>
       <div class="equipment-grid">
@@ -927,7 +562,9 @@ function renderEquipment() {
           ${renderGauge(machine)}
         </div>
         <div class="parameter-grid">
-        ${machine.parameters.map(p => `
+        ${machine.parameters
+          .map(
+            (p) => `
             <div class="parameter">
 
     <div class="parameter-title">
@@ -956,7 +593,9 @@ function renderEquipment() {
 </div>
 
 
-            `).join("")}
+            `,
+          )
+          .join("")}
         </div>
       </div>
     </div>`;
@@ -964,60 +603,40 @@ function renderEquipment() {
 
 /* ---------------- SVG CHARTS ---------------- */
 
-function lineChart(points,thresholds=[]) {
+function lineChart(points, thresholds = []) {
+  if (!points.length) return `<p class="muted">No data available.</p>`;
 
-  if (!points.length) 
-    return `<p class="muted">No data available.</p>`;
+  const w = 720,
+    h = 260,
+    left = 55,
+    right = 25,
+    top = 25,
+    bottom = 45;
 
+  const values = points.map((p) => num(p.y));
 
-  const w=720,
-        h=260,
-        left=55,
-        right=25,
-        top=25,
-        bottom=45;
+  const all = [...values, ...thresholds.map((t) => t.value)];
 
+  let min = Math.min(...all);
+  let max = Math.max(...all);
 
-  const values=points.map(p=>num(p.y));
-
-  const all=[
-    ...values,
-    ...thresholds.map(t=>t.value)
-  ];
-
-
-  let min=Math.min(...all);
-  let max=Math.max(...all);
-
-
-  if(min===max){
-    min-=1;
-    max+=1;
+  if (min === max) {
+    min -= 1;
+    max += 1;
   }
 
+  const pad = (max - min) * 0.15;
 
-  const pad=(max-min)*0.15;
+  min -= pad;
+  max += pad;
 
-  min-=pad;
-  max+=pad;
+  const X = (i) => left + (i * (w - left - right)) / Math.max(1, points.length - 1);
 
+  const Y = (v) => top + ((max - v) * (h - top - bottom)) / (max - min);
 
-
-  const X=i =>
-    left+i*(w-left-right)/
-    Math.max(1,points.length-1);
-
-
-  const Y=v =>
-    top+(max-v)*(h-top-bottom)/(max-min);
-
-
-
-  const path=points.map((p,i)=>
-    `${i?"L":"M"}${X(i).toFixed(1)},${Y(p.y).toFixed(1)}`
-  ).join(" ");
-
-
+  const path = points
+    .map((p, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(p.y).toFixed(1)}`)
+    .join(" ");
 
   return `
 
@@ -1028,16 +647,16 @@ role="img">
 
 <!-- GRID + Y AXIS -->
 
-${[0,.25,.5,.75,1].map(f=>{
+${[0, 0.25, 0.5, 0.75, 1]
+  .map((f) => {
+    const y = top + f * (h - top - bottom);
 
-const y=top+f*(h-top-bottom);
-
-return `
+    return `
 
 <line 
 x1="${left}" 
 y1="${y}"
-x2="${w-right}"
+x2="${w - right}"
 y2="${y}"
 stroke="rgba(15,23,42,0.25)"
 stroke-width="1.5"
@@ -1046,30 +665,32 @@ stroke-width="1.5"
 
 <text 
 x="10"
-y="${y+5}"
+y="${y + 5}"
 font-size="12"
 font-weight="600"
 fill="#0F172A">
 
-${(max-f*(max-min)).toFixed(1)}
+${(max - f * (max - min)).toFixed(1)}
 
 </text>
 
 `;
-
-}).join("")}
+  })
+  .join("")}
 
 
 
 <!-- ALARM / TRIP LINE -->
 
-${thresholds.map(t=>`
+${thresholds
+  .map(
+    (t) => `
 
 <line
 
 x1="${left}"
 
-x2="${w-right}"
+x2="${w - right}"
 
 y1="${Y(t.value)}"
 
@@ -1086,9 +707,9 @@ stroke-dasharray="8 6"
 
 <text
 
-x="${w-right-5}"
+x="${w - right - 5}"
 
-y="${Y(t.value)-8}"
+y="${Y(t.value) - 8}"
 
 text-anchor="end"
 
@@ -1105,7 +726,9 @@ ${esc(t.name)}
 </text>
 
 
-`).join("")}
+`,
+  )
+  .join("")}
 
 
 
@@ -1125,7 +748,9 @@ fill="none"
 
 
 
-${points.map((p,i)=>`
+${points
+  .map(
+    (p, i) => `
 
 <circle
 
@@ -1148,41 +773,31 @@ ${esc(p.label)} : ${esc(p.y)}
 </circle>
 
 
-`).join("")}
+`,
+  )
+  .join("")}
 
 
 
 
 <!-- MONTH LABEL -->
 
-${points.map((p,i)=>{
+${points
+  .map((p, i) => {
+    const date = new Date(p.label);
 
+    const prev = i > 0 ? new Date(points[i - 1].label) : null;
 
-const date=new Date(p.label);
+    const changed = !prev || date.getMonth() !== prev.getMonth() || i === points.length - 1;
 
-
-const prev=i>0 
-? new Date(points[i-1].label)
-: null;
-
-
-const changed =
-!prev ||
-date.getMonth()!==prev.getMonth()
-||
-i===points.length-1;
-
-
-
-if(changed){
-
-return `
+    if (changed) {
+      return `
 
 <text
 
 x="${X(i)}"
 
-y="${h-10}"
+y="${h - 10}"
 
 font-size="12"
 
@@ -1192,38 +807,30 @@ text-anchor="middle"
 
 fill="#0F172A">
 
-${date.toLocaleDateString(
-"en-US",
-{
-month:"short",
-year:"numeric"
-}
-)}
+${date.toLocaleDateString("en-US", {
+  month: "short",
+  year: "numeric",
+})}
 
 </text>
 
 `;
+    }
 
-}
-
-
-return "";
-
-
-}).join("")}
+    return "";
+  })
+  .join("")}
 
 
 
 </svg>
 
 `;
-
 }
-function renderTrend(){
-
+function renderTrend() {
   const e = selectedEquipment();
 
-  if(!e){
+  if (!e) {
     return `
     <div class="card">
       <h3>Historical Trend</h3>
@@ -1233,28 +840,28 @@ function renderTrend(){
     </div>`;
   }
 
-
   const params = machines[C.tag]?.params || [];
 
+  if (!params.length) {
+    return `
+    <div class="card">
+      <h3>Historical Trend</h3>
+      <p class="muted">
+      No threshold configuration is available for ${esc(C.tag)}, so no trend is shown.
+      </p>
+    </div>`;
+  }
 
-  const selectedKey =
-  C.selectedTrendParam || params[0]?.jsonKey;
+  const selectedKey = C.selectedTrendParam || params[0]?.jsonKey;
 
+  const param = params.find((p) => p.jsonKey === selectedKey) || params[0];
 
-
-  const param =
-  params.find(p=>p.jsonKey===selectedKey)
-  || params[0];
-
-
-  const points = e.history
-  .filter(x=>Number.isFinite(Number(x[param.jsonKey])))
-  .map(x=>({
-      label:x.Date,
-      y:Number(x[param.jsonKey])
-  }));
-
-
+  const points = (e.history || [])
+    .filter((x) => Number.isFinite(Number(x[param.jsonKey])))
+    .map((x) => ({
+      label: x.Date,
+      y: Number(x[param.jsonKey]),
+    }));
 
   return `
 
@@ -1289,16 +896,20 @@ function renderTrend(){
       onchange="changeTrendParameter(this.value)"
       >
 
-      ${params.map(p=>`
+      ${params
+        .map(
+          (p) => `
 
       <option
-      value="${p.jsonKey}"
-      ${p.jsonKey===selectedKey?"selected":""}
+      value="${esc(p.jsonKey)}"
+      ${p.jsonKey === selectedKey ? "selected" : ""}
       >
       ${esc(p.label)}
       </option>
 
-      `).join("")}
+      `,
+        )
+        .join("")}
 
 
       </select>
@@ -1312,21 +923,18 @@ function renderTrend(){
 
     <div>
 
-    ${lineChart(
-      points,
-      [
-        {
-          name:"Alarm",
-          value:param.alarm,
-          color:"#D97706"
-        },
-        {
-          name:"Trip",
-          value:param.trip,
-          color:"#DC2626"
-        }
-      ]
-    )}
+    ${lineChart(points, [
+      {
+        name: "Alarm",
+        value: param.alarm,
+        color: "#D97706",
+      },
+      {
+        name: "Trip",
+        value: param.trip,
+        color: "#DC2626",
+      },
+    ])}
 
     </div>
 
@@ -1350,118 +958,80 @@ function renderTrend(){
   </div>
 
   `;
-
 }
 
-function changeTrendParameter(key){
-    C.selectedTrendParam = key;
-    render();
+function changeTrendParameter(key) {
+  C.selectedTrendParam = key;
+  render();
 }
 
-function updateTrendChart(){
+function updateTrendChart() {
+  const checked = [...document.querySelectorAll("[data-trend]:checked")].map((x) =>
+    Number(x.dataset.trend),
+  );
 
- const checked=[
+  const params = machines[C.tag]?.params || [];
 
- ...document.querySelectorAll("[data-trend]:checked")
+  const e = selectedEquipment();
 
- ].map(x=>Number(x.dataset.trend));
+  const datasets = params
+    .map((p, i) => ({
+      id: i,
 
+      label: p.label,
 
- const params = machines[C.tag]?.params || [];
+      points: e.history
+        .filter((x) => Number.isFinite(Number(x[p.jsonKey])))
+        .map((x) => ({
+          label: x.Date,
+          y: Number(x[p.jsonKey]),
+        })),
 
- const e=selectedEquipment();
+      alarm: p.alarm,
+      trip: p.trip,
+    }))
+    .filter((x) => checked.includes(x.id));
 
-
- const datasets=params.map((p,i)=>({
-
-   id:i,
-
-   label:p.label,
-
-   points:e.history
-   .filter(x=>Number.isFinite(Number(x[p.jsonKey])))
-   .map(x=>({
-      label:x.Date,
-      y:Number(x[p.jsonKey])
-   })),
-
-   alarm:p.alarm,
-   trip:p.trip
-
- })).filter(x=>checked.includes(x.id));
-
-
- document.querySelector("#trend-chart").innerHTML =
- lineChartMulti(datasets,checked);
-
+  document.querySelector("#trend-chart").innerHTML = lineChartMulti(datasets, checked);
 }
-function lineChartMulti(datasets){
+function lineChartMulti(datasets) {
+  if (!datasets.length) return `<p class="muted">Select parameter.</p>`;
 
+  const w = 720,
+    h = 260;
 
-if(!datasets.length)
-return `<p class="muted">Select parameter.</p>`;
+  const allValues = datasets.flatMap((d) => d.points.map((p) => p.y));
 
+  let min = Math.min(...allValues);
+  let max = Math.max(...allValues);
 
-const w=720,h=260;
+  if (min === max) {
+    min -= 1;
+    max += 1;
+  }
 
+  const left = 50;
+  const right = 20;
+  const top = 20;
+  const bottom = 40;
 
-const allValues=datasets.flatMap(d=>
-d.points.map(p=>p.y)
-);
+  const X = (i) => left + (i * (w - left - right)) / Math.max(1, datasets[0].points.length - 1);
 
+  const Y = (v) => top + ((max - v) * (h - top - bottom)) / (max - min);
 
-let min=Math.min(...allValues);
-let max=Math.max(...allValues);
+  const colors = ["#2563EB", "#16A34A", "#D97706", "#DC2626"];
 
-
-if(min===max){
-min-=1;
-max+=1;
-}
-
-
-const left=50;
-const right=20;
-const top=20;
-const bottom=40;
-
-
-const X=i=>
-left+i*(w-left-right)/
-Math.max(1,datasets[0].points.length-1);
-
-
-const Y=v=>
-top+(max-v)*(h-top-bottom)/(max-min);
-
-
-
-const colors=[
-"#2563EB",
-"#16A34A",
-"#D97706",
-"#DC2626"
-];
-
-
-
-return `
+  return `
 
 <svg viewBox="0 0 ${w} ${h}"
 class="chart-svg">
 
 
-${datasets.map((d,idx)=>{
+${datasets
+  .map((d, idx) => {
+    const path = d.points.map((p, i) => `${i ? "L" : "M"}${X(i)},${Y(p.y)}`).join(" ");
 
-
-const path=d.points.map((p,i)=>
-
-`${i?"L":"M"}${X(i)},${Y(p.y)}`
-
-).join(" ");
-
-
-return `
+    return `
 
 
 <path 
@@ -1472,7 +1042,9 @@ fill="none"
 />
 
 
-${d.points.map((p,i)=>`
+${d.points
+  .map(
+    (p, i) => `
 
 <circle
 cx="${X(i)}"
@@ -1486,69 +1058,75 @@ ${d.label}: ${p.y}
 
 </circle>
 
-`).join("")}
+`,
+  )
+  .join("")}
 
 
 `;
-
-}).join("")}
+  })
+  .join("")}
 
 
 </svg>
 
 `;
-
 }
 
 function equipmentType() {
-  const row=selectedIncidents()[0];
-  if(row?.["Eq. Type"]) return row["Eq. Type"];
+  const row = selectedIncidents()[0];
+  if (row?.["Eq. Type"]) return row["Eq. Type"];
   return C.tag.split("-")[0];
 }
 
 function renderCrossPlant() {
-  const type=equipmentType();
-  const rows=C.incidents.filter(x=>
-    x["Eq. Type"]===type && x.Plant!==C.plant
-  );
-  const counts={};
-  rows.forEach(x=>counts[x.Plant]=(counts[x.Plant]||0)+1);
-  const sorted=Object.entries(counts)
-    .sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const max=Math.max(1,...sorted.map(x=>x[1]));
+  const type = equipmentType();
+  const rows = C.incidents.filter((x) => x["Eq. Type"] === type && x.Plant !== C.plant);
+  const counts = {};
+  rows.forEach((x) => (counts[x.Plant] = (counts[x.Plant] || 0) + 1));
+  const sorted = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+  const max = Math.max(1, ...sorted.map((x) => x[1]));
 
   return `<div class="card">
     <p class="eyebrow">CROSS-PLANT BENCHMARK</p>
     <h3>Same Equipment Type Incidents</h3>
     <p class="muted">Equipment type: ${esc(type)} · Other plants</p>
-    ${sorted.length?sorted.map(([plant,n])=>`
+    ${
+      sorted.length
+        ? sorted
+            .map(
+              ([plant, n]) => `
       <div class="bar-row">
         <span>${esc(plant)}</span>
         <div class="bar-track">
-          <div class="bar-fill" style="width:${100*n/max}%"></div>
+          <div class="bar-fill" style="width:${(100 * n) / max}%"></div>
         </div>
         <strong>${n}</strong>
-      </div>`).join(""):
-      `<p class="muted">No matching incidents in other plants.</p>`}
+      </div>`,
+            )
+            .join("")
+        : `<p class="muted">No matching incidents in other plants.</p>`
+    }
     <p class="muted">Counts from historical incident records.
       Same equipment type does not necessarily mean same failure mode.</p>
   </div>`;
 }
 
 function renderFinancial() {
-  const rows=incidents();
-  const monthly={};
-  rows.forEach(x=>{
-    const date=String(x["Date of Occur."]||"");
-    const month=date.slice(0,7);
-    if(!/^\d{4}-\d{2}$/.test(month)) return;
-    monthly[month]??={actual:0,potential:0};
-    monthly[month].actual+=num(x["Act. Loss (k US$)"]);
-    monthly[month].potential+=num(x["Pot. Loss (k US$)"]);
+  const rows = incidents();
+  const monthly = {};
+  rows.forEach((x) => {
+    const date = String(x["Date of Occur."] || "");
+    const month = date.slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return;
+    monthly[month] ??= { actual: 0, potential: 0 };
+    monthly[month].actual += num(x["Act. Loss (k US$)"]);
+    monthly[month].potential += num(x["Pot. Loss (k US$)"]);
   });
-  const months=Object.keys(monthly).sort();
-  const max=Math.max(1,...months.map(m=>
-    monthly[m].actual+monthly[m].potential));
+  const months = Object.keys(monthly).sort();
+  const max = Math.max(1, ...months.map((m) => monthly[m].actual + monthly[m].potential));
 
   return `<div class="card">
     <p class="eyebrow">FINANCIAL ANALYTICS</p>
@@ -1559,17 +1137,20 @@ function renderFinancial() {
       <span><i style="background:#8B5CF6"></i>Potential Loss</span>
     </div>
     <div class="financial-chart">
-      ${months.map(m=>{
-        const a=monthly[m].actual,p=monthly[m].potential;
-        return `<div class="financial-column">
+      ${months
+        .map((m) => {
+          const a = monthly[m].actual,
+            p = monthly[m].potential;
+          return `<div class="financial-column">
           <div class="financial-bars" title="${esc(m)}
             Actual: ${a.toFixed(1)}k; Potential: ${p.toFixed(1)}k">
-            <div style="height:${a/max*100}%;background:#3B82F6"></div>
-            <div style="height:${p/max*100}%;background:#8B5CF6"></div>
+            <div style="height:${(a / max) * 100}%;background:#3B82F6"></div>
+            <div style="height:${(p / max) * 100}%;background:#8B5CF6"></div>
           </div>
           <small>${esc(m.slice(5))}</small>
         </div>`;
-      }).join("")}
+        })
+        .join("")}
     </div>
     <p class="muted">
       Actual and potential loss are separate historical categories.
@@ -1578,74 +1159,177 @@ function renderFinancial() {
   </div>`;
 }
 
-function renderDashboard() {
-  const rows=incidents();
-  const downtime=rows.reduce((s,x)=>s+num(x["Downtime (hrs)"]),0);
-  const actual=rows.reduce((s,x)=>s+num(x["Act. Loss (k US$)"]),0);
-  const open=rows.filter(x=>!/CLOSED|COMPLETE/i.test(
-    String(x["Overall Status"]||"")
-  )).length;
-
-  const tagOptions=tagsForPlant();
-  if(!tagOptions.includes(C.tag)) C.tag=tagOptions[0]||"";
-
+function renderPlantPerformance() {
+  const rows = incidents();
+  const downtime = rows.reduce((s, x) => s + num(x["Downtime (hrs)"]), 0);
+  const actual = rows.reduce((s, x) => s + num(x["Act. Loss (k US$)"]), 0);
+  const open = rows.filter(
+    (x) => !/CLOSED|COMPLETE/i.test(String(x["Overall Status"] || "")),
+  ).length;
   return `
     <div class="page-header">
       <div>
-        <p class="eyebrow">SENSE / PERFORMANCE OVERVIEW</p>
-        <h1>Manufacturing Performance</h1>
-        <p class="muted">Operational visibility and incident intelligence</p>
+        <p class="eyebrow">SENSE / PLANT PERFORMANCE</p>
+        <h1>Plant Performance</h1>
+        <p class="muted">Plant-level operational visibility, incident records and financial impact</p>
+      </div>
+    </div>
+    <div class="kpi-grid">
+      ${card("Historical Incidents", rows.length)}
+      ${card("Recorded Downtime", downtime.toFixed(1) + " h")}
+      ${card("Actual Financial Loss", usd(actual * 1000))}
+      ${card("Open Incident Records", open)}
+    </div>
+    <div class="dashboard-grid">
+      ${renderFinancial()}
+      <div class="card">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">EQUIPMENT WORKSPACE</p>
+            <h3>Move from Plant to Equipment Performance</h3>
+            <p class="muted">Select an equipment tag to review health, historical trends and cross-plant benchmark.</p>
+          </div>
+          <button class="btn" onclick="go('equipment-performance')">Open Equipment Performance →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-heading">
+        <div>
+          <p class="eyebrow">INCIDENT RECORDS</p>
+          <h3>${esc(C.plant)} — Historical Incident Register</h3>
+        </div>
+        <button class="btn outline" onclick="go('incidents')">Open Incident Center →</button>
+      </div>
+      ${incidentTable(rows)}
+    </div>`;
+}
+function getEquipmentAlert(machine) {
+  if (!machine || !machine.parameters?.length) return null;
+  const trip = machine.parameters.filter((p) => p.state === "TRIP");
+  const alarm = machine.parameters.filter((p) => p.state === "ALARM");
+  if (trip.length) {
+    return {
+      level: "TRIP",
+      title: "Trip condition detected",
+      text: `${trip.map((p) => p.label).join(", ")} has crossed its trip threshold. Immediate diagnostic review is recommended.`,
+      parameters: trip,
+    };
+  }
+  if (alarm.length) {
+    return {
+      level: "EARLY WARNING",
+      title: "Early warning — threshold deviation",
+      text: `${alarm.map((p) => p.label).join(", ")} has reached an alarm condition. Review the equipment trend and diagnostics before the condition escalates.`,
+      parameters: alarm,
+    };
+  }
+  return null;
+}
+function renderEquipmentAlert(machine) {
+  const alert = getEquipmentAlert(machine);
+  if (!alert) {
+    return `
+      <div class="card">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">MONITORING STATUS</p>
+            <h3>No Active Equipment Alert</h3>
+            <p class="muted">Latest validated readings are within the configured alarm/trip thresholds.</p>
+          </div>
+          <span class="badge normal">NORMAL</span>
+        </div>
+      </div>`;
+  }
+  const badgeClass = alert.level === "TRIP" ? "trip" : "alarm";
+  return `
+    <div class="card">
+      <div class="card-heading">
+        <div>
+          <p class="eyebrow">DECIDE / ALERT</p>
+          <h3>${esc(alert.title)}</h3>
+          <p class="muted">${esc(alert.text)}</p>
+        </div>
+        <span class="badge ${badgeClass}">${esc(alert.level)}</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parameter</th><th>Current</th><th>Alarm</th><th>Trip</th><th>Status</th></tr></thead>
+          <tbody>${alert.parameters
+            .map(
+              (p) => `
+            <tr>
+              <td>${esc(p.label)}</td>
+              <td>${esc(p.value)} ${esc(p.unit)}</td>
+              <td>${esc(p.alarm)}</td>
+              <td>${esc(p.trip)}</td>
+              <td><span class="badge ${p.state.toLowerCase()}">${esc(p.state)}</span></td>
+            </tr>`,
+            )
+            .join("")}</tbody>
+        </table>
+      </div>
+      <div class="card-heading" style="margin-top:16px;margin-bottom:0">
+        <span class="muted">Diagnostics will connect this alert to relevant incident/RCA evidence and recommended actions.</span>
+        <button class="btn" onclick="openDiagnostics('${esc(C.tag)}')">Open Diagnostics →</button>
+      </div>
+    </div>`;
+}
+function renderEquipmentPerformance() {
+  const tagOptions = tagsForPlant();
+  if (!tagOptions.includes(C.tag)) C.tag = tagOptions[0] || "";
+  const machine = calculateMachineHealth(C.tag);
+  return `
+    <div class="page-header">
+      <div>
+        <p class="eyebrow">SENSE / EQUIPMENT PERFORMANCE</p>
+        <h1>Equipment Performance</h1>
+        <p class="muted">Equipment condition, parameter trends and cross-plant reliability context</p>
       </div>
       <div class="filter-box">
         <label>Equipment Tag</label>
         <select onchange="chooseTag(this.value)">
-          ${tagOptions.map(t=>`
-            <option value="${esc(t)}" ${t===C.tag?"selected":""}>
-              ${esc(t)} ${C.equipment[t]?"(Available)":""}
-            </option>`).join("")}
+          ${tagOptions
+            .map(
+              (t) => `
+            <option value="${esc(t)}" ${t === C.tag ? "selected" : ""}>
+              ${esc(t)} ${C.equipment[t] ? "(Available)" : ""}
+            </option>`,
+            )
+            .join("")}
         </select>
       </div>
     </div>
-    <div class="kpi-grid">
-      ${card("Historical Incidents",rows.length)}
-      ${card("Recorded Downtime",downtime.toFixed(1)+" h")}
-      ${card("Actual Financial Loss",usd(actual*1000))}
-      ${card("Open Incident Records",open)}
-    </div>
+    ${renderEquipment()}
+    ${machine ? renderEquipmentAlert(machine) : `<div class="card"><p class="muted">No validated telemetry is available for ${esc(C.tag)}. Historical incidents remain accessible in Incident Center.</p></div>`}
     <div class="dashboard-grid">
-      ${renderEquipment()}
       ${renderTrend()}
       ${renderCrossPlant()}
-      ${renderFinancial()}
-    </div>
-    <div class="card">
-      <div class="card-heading">
-        <div><p class="eyebrow">INCIDENT QUEUE</p>
-          <h3>${esc(C.tag)} — Historical Incidents</h3></div>
-        <button class="btn" onclick="go('diagnostics')">
-          Open Diagnostics →
-        </button>
-      </div>
-      ${incidentTable(selectedIncidents())}
     </div>`;
 }
-
+function renderDashboard() {
+  return renderPlantPerformance();
+}
 /* ---------------- INCIDENTS ---------------- */
 
 function incidentTable(rows) {
-  if(!rows.length) return `<p class="muted">No incidents found.</p>`;
+  if (!rows.length) return `<p class="muted">No incidents found.</p>`;
   return `<div class="table-wrap"><table>
     <thead><tr><th>AR Number</th><th>Tag</th><th>Title</th>
       <th>Downtime</th><th>Actual Loss</th><th>Status</th></tr></thead>
-    <tbody>${rows.map(x=>`
+    <tbody>${rows
+      .map(
+        (x) => `
       <tr>
         <td>${esc(x["AR No."])}</td>
         <td>${esc(x["Tag Number"])}</td>
         <td>${esc(x["Risk Case Title"])}</td>
         <td>${esc(x["Downtime (hrs)"])} h</td>
-        <td>${usd(num(x["Act. Loss (k US$)"])*1000)}</td>
+        <td>${usd(num(x["Act. Loss (k US$)"]) * 1000)}</td>
         <td>${esc(x["Overall Status"])}</td>
-      </tr>`).join("")}</tbody></table></div>`;
+      </tr>`,
+      )
+      .join("")}</tbody></table></div>`;
 }
 
 function renderIncidents() {
@@ -1657,30 +1341,50 @@ function renderIncidents() {
 
 /* ---------------- DIAGNOSTICS ---------------- */
 
+function actionAlreadyAssigned(action) {
+  return C.tasks.find(
+    (t) =>
+      t.tag === C.tag &&
+      t.action === action.action &&
+      ["ASSIGNED", "IN_PROGRESS", "PENDING_VERIFICATION"].includes(t.status),
+  );
+}
 function renderDiagnostics() {
-  const r=selectedRCA();
-  const record=selectedIncidents()[0];
-  if(!r) return `
-    <h1>${esc(C.tag)} — Diagnostics</h1>
+  const r = selectedRCA();
+  const record = selectedIncidents()[0];
+  const machine = calculateMachineHealth(C.tag);
+  const alert = getEquipmentAlert(machine);
+  if (!r)
+    return `
+    <p class="eyebrow">DECIDE / DIAGNOSTICS</p>
+    <h1>${esc(C.tag)} — AI-Assisted Diagnostics</h1>
     <div class="card">
-      <p class="muted">
-        Detailed RCA is not provided for this equipment.
-        Incident history remains available in Incident Center.
-      </p>
+      <p class="muted">Detailed RCA is not provided for this equipment. Incident history remains available in Incident Center.</p>
     </div>`;
-
-  const actions=r.corrective_actions||[];
+  const actions = r.corrective_actions || [];
+  const actualLoss = record ? num(record["Act. Loss (k US$)"]) * 1000 : num(r.estimated_loss_usd);
+  const potentialLoss = record ? num(record["Pot. Loss (k US$)"]) * 1000 : 0;
+  const mode = alert?.level || "HISTORICAL REVIEW";
+  const modeClass = mode === "TRIP" ? "trip" : mode === "EARLY WARNING" ? "alarm" : "normal";
   return `
     <p class="eyebrow">DECIDE / DIAGNOSTICS</p>
     <h1>${esc(C.tag)} — AI-Assisted Diagnostics</h1>
     <p class="muted">${esc(r.title)}</p>
+    <div class="card">
+      <div class="card-heading">
+        <div>
+          <p class="eyebrow">DIAGNOSTIC TRIGGER</p>
+          <h3>${esc(mode)}</h3>
+          <p class="muted">${alert ? esc(alert.text) : "No active threshold alert. This view uses the selected equipment's historical RCA and incident evidence."}</p>
+        </div>
+        <span class="badge ${modeClass}">${esc(mode)}</span>
+      </div>
+    </div>
     <div class="kpi-grid">
-      ${card("Historical Actual Loss",
-        usd(num(record?.["Act. Loss (k US$)"])*1000))}
-      ${card("Historical Potential Loss",
-        usd(num(record?.["Pot. Loss (k US$)"])*1000))}
-      ${card("Downtime",r.downtime_hours+" h")}
-      ${card("RCA Owner",r.pic)}
+      ${card("Historical Actual Loss", usd(actualLoss))}
+      ${card("Historical Potential Loss", usd(potentialLoss))}
+      ${card("Downtime", r.downtime_hours + " h")}
+      ${card("RCA Owner", r.pic)}
     </div>
     <div class="dashboard-grid">
       <div class="card">
@@ -1693,126 +1397,144 @@ function renderDiagnostics() {
       <div class="card">
         <p class="eyebrow">INCIDENT CHRONOLOGY</p>
         <h3>Historical Timeline</h3>
-        ${(r.chronology||[]).map(x=>`
-          <div class="timeline">${esc(x)}</div>`).join("")}
+        ${(r.chronology || [])
+          .map(
+            (x) => `
+          <div class="timeline">${esc(x)}</div>`,
+          )
+          .join("")}
       </div>
     </div>
     <div class="card">
-      <p class="eyebrow">ACT / RCA ACTIONS</p>
-      <h3>Corrective & Preventive Actions</h3>
+      <p class="eyebrow">DECIDE / RECOMMENDATION</p>
+      <h3>Recommended Corrective & Preventive Actions</h3>
+      <p class="muted">Actions are surfaced from the verified RCA for this equipment. Assignment remains a human decision and is not performed autonomously.</p>
       <div class="table-wrap"><table>
-        <thead><tr><th>Action</th><th>PIC</th>
-          <th>Deadline</th><th>Status</th></tr></thead>
-        <tbody>${actions.map(x=>`<tr>
-          <td>${esc(x.action)}</td><td>${esc(x.pic)}</td>
-          <td>${esc(x.plan_date)}</td>
-          <td>${esc(x.status)}</td>
-        </tr>`).join("")}</tbody>
+        <thead><tr><th>Action</th><th>PIC</th><th>Reference Date</th><th>Status</th><th>Assignment</th></tr></thead>
+        <tbody>${actions
+          .map((x, i) => {
+            const task = actionAlreadyAssigned(x);
+            return `<tr>
+            <td>${esc(x.action)}</td>
+            <td>${esc(x.pic)}</td>
+            <td>${esc(x.plan_date || "—")}</td>
+            <td>${esc(x.status)}</td>
+            <td>${
+              C.role === "manager"
+                ? task
+                  ? `<span class="badge">${esc(task.status)}</span>`
+                  : `<button class="btn" onclick="openAssignModal(${i})">Assign</button>`
+                : `<span class="muted">Manager only</span>`
+            }</td>
+          </tr>`;
+          })
+          .join("")}</tbody>
       </table></div>
     </div>
-    ${C.role==="manager"?`
-      <div class="card">
-        <h3>Assign Action to Staff</h3>
-        <label>Corrective Action</label>
-        <select id="action-select" onchange="syncPIC()">
-          ${actions.map((x,i)=>`
-            <option value="${i}">${esc(x.action)}</option>`).join("")}
-        </select>
-        <label>Responsible PIC</label>
-        <select id="pic-select">
-          ${USERS.filter(x=>x.role==="staff").map(x=>`
-            <option value="${x.id}">${x.id}</option>`).join("")}
-        </select>
-        <label>Deadline</label>
-        <input id="due-select" type="date">
-        <button class="btn" onclick="assign()">Assign Task</button>
-      </div>`:
-      `<div class="card"><p class="muted">
-        Assignment is restricted to the Manager role.
-      </p></div>`}
+    ${C.assigningActionIndex !== null ? renderAssignModal(actions[C.assigningActionIndex]) : ""}
     `;
 }
-
-function syncPIC() {
-  const a=selectedRCA()?.corrective_actions?.[
-    Number($("#action-select").value)
-  ];
-  if(a && USERS.some(u=>u.id===a.pic))
-    $("#pic-select").value=a.pic;
-  if(a?.plan_date) $("#due-select").value=a.plan_date;
+function renderAssignModal(action) {
+  if (!action) return "";
+  return `
+    <div id="assign-modal" style="position:fixed;inset:0;background:rgba(15,23,42,.35);backdrop-filter:blur(5px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div class="card" style="width:min(560px,100%);box-shadow:0 24px 60px rgba(15,23,42,.22)">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">ACTION ASSIGNMENT</p>
+            <h3>Assign Recommended Action</h3>
+          </div>
+          <button class="btn outline" onclick="closeAssignModal()">Close</button>
+        </div>
+        <label>Action</label>
+        <input value="${esc(action.action)}" disabled>
+        <label>PIC</label>
+        <input value="${esc(action.pic)}" disabled>
+        <label>Deadline</label>
+        <input id="assign-deadline" type="date">
+        <p class="muted">Reference RCA date: ${esc(action.plan_date || "Not provided")}. Set the execution deadline for this assignment.</p>
+        <div class="card-heading" style="margin-top:18px;margin-bottom:0">
+          <span class="muted">Action and PIC are populated from the RCA.</span>
+          <button class="btn" onclick="confirmAssign()">Assign Task</button>
+        </div>
+      </div>
+    </div>`;
 }
-
-function assign() {
-  if(C.role!=="manager") return;
-  const a=selectedRCA()?.corrective_actions?.[
-    Number($("#action-select").value)
-  ];
-  if(!a) return alert("No action selected.");
-  const pic=$("#pic-select").value;
-  const due=$("#due-select").value;
-  if(!due) return alert("Select a deadline.");
-
+function openAssignModal(index) {
+  if (C.role !== "manager") return;
+  C.assigningActionIndex = index;
+  render();
+}
+function closeAssignModal() {
+  C.assigningActionIndex = null;
+  render();
+}
+function confirmAssign() {
+  if (C.role !== "manager") return;
+  const r = selectedRCA();
+  const action = r?.corrective_actions?.[Number(C.assigningActionIndex)];
+  if (!action) return alert("No action selected.");
+  const due = $("#assign-deadline")?.value;
+  if (!due) return alert("Please enter a deadline.");
   C.tasks.push({
-    id:"TASK-"+Date.now(),
-    ar:selectedRCA().ar_number,
-    tag:C.tag,
-    plant:C.plant,
-    action:a.action,
-    pic,due,
-    status:"ASSIGNED",
-    evidence:"",
-    history:[{
-      by:C.user,status:"ASSIGNED",
-      at:new Date().toISOString()
-    }]
+    id: "TASK-" + Date.now(),
+    ar: r.ar_number,
+    tag: C.tag,
+    plant: C.plant,
+    action: action.action,
+    pic: action.pic,
+    due,
+    status: "ASSIGNED",
+    evidence: "",
+    history: [{ by: C.user, status: "ASSIGNED", at: new Date().toISOString() }],
   });
   save();
+  C.assigningActionIndex = null;
   go("tasks");
 }
 
 /* ---------------- TASKS ---------------- */
 
-function updateTask(id,next,evidence="") {
-  const t=C.tasks.find(x=>x.id===id);
-  if(!t) return;
-  const manager=C.role==="manager";
-  const owner=C.role==="staff" && t.pic===C.user;
+function updateTask(id, next, evidence = "") {
+  const t = C.tasks.find((x) => x.id === id);
+  if (!t) return;
+  const manager = C.role === "manager";
+  const owner = C.role === "staff" && t.pic === C.user;
 
   const allowed =
-    (owner && t.status==="ASSIGNED" && next==="IN_PROGRESS") ||
-    (owner && t.status==="IN_PROGRESS" &&
-      next==="PENDING_VERIFICATION" && evidence.trim()) ||
-    (manager && t.status==="PENDING_VERIFICATION" &&
-      ["VERIFIED","IN_PROGRESS"].includes(next));
+    (owner && t.status === "ASSIGNED" && next === "IN_PROGRESS") ||
+    (owner && t.status === "IN_PROGRESS" && next === "PENDING_VERIFICATION" && evidence.trim()) ||
+    (manager && t.status === "PENDING_VERIFICATION" && ["VERIFIED", "IN_PROGRESS"].includes(next));
 
-  if(!allowed) return alert("Action not permitted.");
+  if (!allowed) return alert("Action not permitted.");
 
-  t.status=next;
-  if(evidence) t.evidence=evidence;
+  t.status = next;
+  if (evidence) t.evidence = evidence;
   t.history.push({
-    by:C.user,status:next,at:new Date().toISOString()
+    by: C.user,
+    status: next,
+    at: new Date().toISOString(),
   });
   save();
   render();
 }
 
 function submitTask(id) {
-  const text=document.getElementById("evidence-"+id)?.value.trim();
-  if(!text) return alert("Please provide completion evidence.");
-  updateTask(id,"PENDING_VERIFICATION",text);
+  const text = document.getElementById("evidence-" + id)?.value.trim();
+  if (!text) return alert("Please provide completion evidence.");
+  updateTask(id, "PENDING_VERIFICATION", text);
 }
 
 function resetTasks() {
-  if(C.role!=="manager") return;
-  if(!confirm("Reset all demo tasks?")) return;
-  C.tasks=[];
+  if (C.role !== "manager") return;
+  if (!confirm("Reset all demo tasks?")) return;
+  C.tasks = [];
   save();
   render();
 }
 
 function renderTasks() {
-  const rows=C.role==="manager"?C.tasks:
-    C.tasks.filter(x=>x.pic===C.user);
+  const rows = C.role === "manager" ? C.tasks : C.tasks.filter((x) => x.pic === C.user);
 
   return `
     <div class="page-header">
@@ -1820,15 +1542,23 @@ function renderTasks() {
         <p class="eyebrow">ACT / WORK ORDER MANAGEMENT</p>
         <h1>Action Hub</h1>
         <p class="muted">
-          ${C.role==="manager"?"All assigned tasks":"My assigned tasks"}
+          ${C.role === "manager" ? "All assigned tasks" : "My assigned tasks"}
         </p>
       </div>
-      ${C.role==="manager"?`
+      ${
+        C.role === "manager"
+          ? `
         <button class="btn outline" onclick="resetTasks()">
           Reset Demo
-        </button>`:""}
+        </button>`
+          : ""
+      }
     </div>
-    ${rows.length?rows.map(t=>`
+    ${
+      rows.length
+        ? rows
+            .map(
+              (t) => `
       <div class="card task-card">
         <div class="card-heading">
           <div>
@@ -1840,23 +1570,36 @@ function renderTasks() {
         <p class="muted">
           ${esc(t.ar)} · PIC ${esc(t.pic)} · Due ${esc(t.due)}
         </p>
-        ${t.evidence?`
+        ${
+          t.evidence
+            ? `
           <div class="hint"><strong>Submitted Evidence</strong>
-            <p>${esc(t.evidence)}</p></div>`:""}
-        ${C.user===t.pic && t.status==="ASSIGNED"?`
+            <p>${esc(t.evidence)}</p></div>`
+            : ""
+        }
+        ${
+          C.user === t.pic && t.status === "ASSIGNED"
+            ? `
           <button class="btn"
             onclick="updateTask('${t.id}','IN_PROGRESS')">
             Accept Task
-          </button>`:""}
-        ${C.user===t.pic && t.status==="IN_PROGRESS"?`
+          </button>`
+            : ""
+        }
+        ${
+          C.user === t.pic && t.status === "IN_PROGRESS"
+            ? `
           <label>Completion Evidence</label>
           <textarea id="evidence-${t.id}" rows="3"
             placeholder="Describe completed work and evidence reference"></textarea>
           <button class="btn" onclick="submitTask('${t.id}')">
             Submit for Verification
-          </button>`:""}
-        ${C.role==="manager" &&
-          t.status==="PENDING_VERIFICATION"?`
+          </button>`
+            : ""
+        }
+        ${
+          C.role === "manager" && t.status === "PENDING_VERIFICATION"
+            ? `
           <button class="btn"
             onclick="updateTask('${t.id}','VERIFIED')">
             Verify Completion
@@ -1864,25 +1607,32 @@ function renderTasks() {
           <button class="btn outline"
             onclick="updateTask('${t.id}','IN_PROGRESS')">
             Return to Staff
-          </button>`:""}
-        ${t.status==="VERIFIED"?`
+          </button>`
+            : ""
+        }
+        ${
+          t.status === "VERIFIED"
+            ? `
           <p class="success-text">
             Task verified. Incident closure remains separate.
-          </p>`:""}
-      </div>`).join(""):
-      `<div class="card"><p class="muted">
+          </p>`
+            : ""
+        }
+      </div>`,
+            )
+            .join("")
+        : `<div class="card"><p class="muted">
         No tasks available for this account.
-      </p></div>`}`;
+      </p></div>`
+    }`;
 }
 
 /* ---------------- STYLES ---------------- */
 
-/* ---------------- STYLES ---------------- */
-
 function installStyles() {
-  const css=`
+  const css = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
-  
+
   :root{
     --blue:#0F4C81;
     --purple:#2563EB;
@@ -1917,7 +1667,7 @@ function installStyles() {
   p{line-height:1.65}
   button,input,select,textarea{font:inherit}
   button{cursor:pointer}
-  
+
   label{
     display:block;font-size:12px;font-weight:700;
     margin:16px 0 8px;color:#475569;text-transform:uppercase;letter-spacing:.5px
@@ -1936,7 +1686,7 @@ function installStyles() {
   }
 
   .muted{color:#334155;font-size:13px;font-weight:500}
-  
+
   .eyebrow{
     font:600 11px "IBM Plex Mono",monospace;
     letter-spacing:1px;color:var(--blue);margin-bottom:10px
@@ -1967,7 +1717,7 @@ function installStyles() {
   }
 
   .btn.full{width:100%;margin-top:18px}
-  
+
   .logo{font:700 27px Poppins,sans-serif;letter-spacing:1px}
   .logo span{color:var(--blue)}
 
@@ -2021,7 +1771,7 @@ color:#475569;
   }
 
   .login-card input{width:100%}
-  
+
   .hint{
     background:rgba(239,246,255,0.5);
     border:1px solid rgba(255,255,255,0.5);
@@ -2033,7 +1783,7 @@ color:#475569;
   .success-text{color:var(--green);font-weight:600}
 
   .shell{display:flex;min-height:100vh}
-  
+
   .sidebar{
     width:245px;flex-shrink:0;
     background:rgba(15, 23, 42, 0.85);
@@ -2108,7 +1858,7 @@ color:#475569;
     font:900 34px Poppins,sans-serif;
     color:#0F172A;
     overflow-wrap:anywhere;
-    margin:0 0 8px;
+    margin:0 0;
   }
   .kpi .muted{
     font-size:20px;
@@ -2141,7 +1891,7 @@ color:#475569;
     background:rgba(255,255,255,0.55);
     backdrop-filter:blur(18px);
     -webkit-backdrop-filter:blur(18px);
-  
+
     border-top:1px solid rgba(255,255,255,0.8);
     border:1px solid rgba(255,255,255,0.7);
     border-radius:16px;
@@ -2164,7 +1914,7 @@ color:#475569;
     line-height:1;
     margin:0;
   }
-    
+
   .parameter-title{
     font-size:12px;
     font-weight:600;
@@ -2283,7 +2033,7 @@ color:#475569;
   .financial-column small{font-size:10px;color:var(--muted)}
 
   .table-wrap{overflow-x:auto}
-  
+
   table{width:100%;border-collapse:collapse;font-size:12px}
 
   th{
@@ -2370,24 +2120,31 @@ accent-color:#2563EB;
     .parameter-grid{grid-template-columns:repeat(2,1fr);}
     .topbar{padding:15px}
   }`;
-  
-  const style=document.createElement("style");
-  style.textContent=css;
+
+  const style = document.createElement("style");
+  style.textContent = css;
   document.head.appendChild(style);
 }
 
 /* ---------------- RENDER ---------------- */
 
+const PAGES = {
+  selection: renderSelection,
+  "plant-performance": renderPlantPerformance,
+  dashboard: renderPlantPerformance,
+  "equipment-performance": renderEquipmentPerformance,
+  incidents: renderIncidents,
+  diagnostics: renderDiagnostics,
+  tasks: renderTasks,
+};
+
 function render() {
-  document.body.innerHTML=C.user
-    ?shell(
-      C.page==="selection"?renderSelection():
-      C.page==="dashboard"?renderDashboard():
-      C.page==="incidents"?renderIncidents():
-      C.page==="diagnostics"?renderDiagnostics():
-      renderTasks()
-    )
-    :renderLogin();
+  const renderPage = PAGES[C.page] || renderTasks;
+  document.body.innerHTML = C.user ? shell(renderPage()) : renderLogin();
 }
 
-document.addEventListener("DOMContentLoaded",boot);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
