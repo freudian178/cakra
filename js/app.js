@@ -370,22 +370,17 @@ function renderLogin() {
   return `
     <div class="login-page">
       <div class="login-card">
-        <div class="logo">CAKRA<span>.</span></div>
-        <p class="eyebrow">INTELLIGENT MANUFACTURING HUB</p>
+        <div class="logo">
+          <img src="img/cakra.png" alt="CAKRA">
+        </div>
         <h1>Welcome back</h1>
         <p class="muted">Sign in to your manufacturing workspace.</p>
-        <label>Employee ID</label>
+        <label>User ID</label>
         <input id="login-id" placeholder="MGR-01 / ROT-01">
         <label>Password</label>
         <input id="login-pass" type="password" placeholder="Password">
         <p id="login-error" class="danger-text"></p>
         <button class="btn full" onclick="login()">Sign In →</button>
-        <div class="hint">
-          <strong>Demo accounts</strong><br>
-          Manager: MGR-01<br>
-          Staff: ROT-01, REL-05, REL-02<br>
-          Password: demo123
-        </div>
         <small class="muted">
           Prototype-only login. Not secure authentication.
         </small>
@@ -439,7 +434,9 @@ function shell(content) {
   return `
     <div class="shell">
       <aside class="sidebar">
-        <div class="logo">CAKRA<span>.</span></div>
+        <div class="logo">
+          <img src="img/cakra.png" alt="CAKRA">
+      </div>
         <p class="side-caption">INTELLIGENT MANUFACTURING</p>
         ${navButton("selection", "▦  Plant Selection")}
         ${navButton("plant-performance", "◫  Plant Performance")}
@@ -1300,8 +1297,10 @@ function renderEquipmentPerformance() {
         </select>
       </div>
     </div>
-    ${renderEquipment()}
-    ${machine ? renderEquipmentAlert(machine) : `<div class="card"><p class="muted">No validated telemetry is available for ${esc(C.tag)}. Historical incidents remain accessible in Incident Center.</p></div>`}
+    <div class="equipment-section">
+      ${renderEquipment()}
+      ${machine ? renderEquipmentAlert(machine) : `<div class="card"><p class="muted">No validated telemetry is available for ${esc(C.tag)}. Historical incidents remain accessible in Incident Center.</p></div>`}
+    </div>
     <div class="dashboard-grid">
       ${renderTrend()}
       ${renderCrossPlant()}
@@ -1335,7 +1334,6 @@ function incidentTable(rows) {
 function renderIncidents() {
   return `<p class="eyebrow">SENSE / INCIDENT REGISTER</p>
     <h1>Incident Center</h1>
-    <p class="muted">Historical incident records for ${esc(C.plant)}</p>
     <div class="card">${incidentTable(incidents())}</div>`;
 }
 
@@ -1369,7 +1367,6 @@ function renderDiagnostics() {
   return `
     <p class="eyebrow">DECIDE / DIAGNOSTICS</p>
     <h1>${esc(C.tag)} — AI-Assisted Diagnostics</h1>
-    <p class="muted">${esc(r.title)}</p>
     <div class="card">
       <div class="card-heading">
         <div>
@@ -1390,7 +1387,7 @@ function renderDiagnostics() {
       <div class="card">
         <p class="eyebrow">VERIFIED RCA</p>
         <h3>Root Cause</h3>
-        <p>${esc(r.root_cause)}</p>
+        <p class="muted">${esc(r.root_cause)}</p>
         <h3>Problem Statement</h3>
         <p class="muted">${esc(r.problem_statement)}</p>
       </div>
@@ -1685,7 +1682,7 @@ function installStyles() {
     box-shadow:inset 0 1px 2px rgba(255,255,255,0.4);
   }
 
-  .muted{color:#334155;font-size:13px;font-weight:500}
+  .muted{color:#334155;font-size:13px;font-weight:500;margin:0 0 12px}
 
   .eyebrow{
     font:600 11px "IBM Plex Mono",monospace;
@@ -1718,7 +1715,22 @@ function installStyles() {
 
   .btn.full{width:100%;margin-top:18px}
 
-  .logo{font:700 27px Poppins,sans-serif;letter-spacing:1px}
+  .logo{
+    display:flex;
+    align-items:center;
+    margin-bottom:8px;
+  }
+
+  .logo img{
+    width:120px;
+    height:auto;
+    display:block;
+    object-fit:contain;
+  }
+  
+  .login-card .logo{
+    justify-content:center;
+  }
   .logo span{color:var(--blue)}
 
   .login-page{
@@ -1839,7 +1851,7 @@ color:#475569;
   }
 
   .filter-box{padding:12px 18px}
-  .filter-box label{margin:0 0 6px}
+  .filter-box label{margin:0 0 6px;font-family:"Open Sans"}
   .filter-box select{min-width:210px}
 
   .kpi-grid{
@@ -2071,19 +2083,21 @@ color:#475569;
   .plant-icon{font-size:30px;color:var(--blue);margin-bottom:15px}
 
   .trend-selector{
-
-display:flex;
-gap:18px;
-flex-wrap:wrap;
-
-margin-top:18px;
-
-padding-top:14px;
-
-border-top:
-1px solid rgba(255,255,255,.35);
-
-}
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-top:18px;
+    padding-top:14px;
+    border-top:
+    1px solid rgba(255,255,255,.35);
+  }
+  
+  .equipment-section{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    margin-bottom:16px;
+  }
 
 
 .trend-selector label{
