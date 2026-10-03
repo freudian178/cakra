@@ -18,7 +18,11 @@ const C = {
   tasks: [],
   key: "cakra-actions-v5",
   selectedTrendParam: null,
-  assigningActionIndex: null,
+  assigningPlan: false,
+  diagPoint: {},
+  diagSel: {},
+  rcaWork: {},
+  rcaKey: "cakra-rca-v1",
 };
 
 const $ = (s) => document.querySelector(s);
@@ -272,6 +276,7 @@ async function boot() {
     C.incidents = normalizeIncidents(incidentRows);
     C.rca = rca;
     C.tasks = loadTasks();
+    C.rcaWork = loadRcaWork();
     installStyles();
     render();
   } catch (err) {
@@ -404,7 +409,7 @@ function pageLabel(page) {
 }
 function go(page) {
   C.page = page;
-  C.assigningActionIndex = null;
+  C.assigningPlan = false;
   render();
   window.scrollTo(0, 0);
 }
@@ -418,12 +423,12 @@ function chooseTag(tag) {
   console.log("TAG DIPILIH:", tag);
   C.tag = tag;
   C.selectedTrendParam = null;
-  C.assigningActionIndex = null;
+  C.assigningPlan = false;
   render();
 }
 function openDiagnostics(tag = C.tag) {
   if (tag) C.tag = tag;
-  C.assigningActionIndex = null;
+  C.assigningPlan = false;
   go("diagnostics");
 }
 function navButton(page, title) {
@@ -1337,157 +1342,826 @@ function renderIncidents() {
     <div class="card">${incidentTable(incidents())}</div>`;
 }
 
-/* ---------------- DIAGNOSTICS ---------------- */
+/* ---------------- AI DIAGNOSTICS ----------------
+   Decision-support layer, NOT a root-cause oracle.
+   Flow: condition -> similar historical incidents -> historical RCA (reference)
+         -> possible causes -> recommended actions -> user selection
+         -> (optional) RCA Analysis -> assignment -> Action Hub.
+   The logic is generic: it works from incident-register fields, RCA records and
+   equipment thresholds only. There are no per-tag branches.
+*/
+
+// Generic failure-domain vocabulary used to relate parameters and incident titles.
+const DOMAIN_TERMS = {
+  seal: ["seal", "flush", "leak", "weep"],
+  vibration: ["vibration", "misalign", "coupling", "soft-foot", "softfoot", "unbalance", "imbalance", "resonance", "harmonic", "offset"],
+  bearing: ["bearing", "babbitt", "journal", "lube", "lubric", "grease", "greasing", "oil", "thrust", "water", "contamination"],
+  thermal: ["temp", "overheat", "thermal", "winding"],
+  fouling: ["fouling", "foul", "scaling", "coke", "polymer", "plugging", "choke", "dp", "duty", "heavy"],
+  cavitation: ["cavitation", "npsh", "suction"],
+  electrical: ["motor", "ampere", "electrical"],
+  pressure: ["pressure", "discharge"],
+};
+
+const GENERIC_COMPONENT_WORDS = ["system", "unit", "assembly", "other", "general", "equipment"];
+
+const weeksBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 604800000);
+
+function domainsOf(text) {
+  const tokens = String(text || "")
+    .toLowerCase()
+    .split(/[^a-z0-9-]+/)
+    .filter(Boolean);
+  const found = new Set();
+  Object.entries(DOMAIN_TERMS).forEach(([domain, terms]) => {
+    if (tokens.some((tk) => terms.some((term) => tk === term || (term.length >= 4 && tk.startsWith(term))))) {
+      found.add(domain);
+    }
+  });
+  return found;
+}
+
+function rcaByAR(ar) {
+  return Object.values(C.rca || {}).find((r) => r.ar_number === ar) || null;
+}
+
+function latestRecordForTag(tag) {
+  return (
+    C.incidents
+      .filter((x) => x["Tag Number"] === tag)
+      .sort((a, b) => String(b["Date of Occur."] || "").localeCompare(String(a["Date of Occur."] || "")))[0] || null
+  );
+}
+
+/* ---- condition detection (from equipment thresholds) ---- */
+
+function rowAssessment(tag, row) {
+  const config = machines[tag];
+  const abnormal = [];
+  let worst = "NORMAL";
+  (config?.params || []).forEach((p) => {
+    const value = Number(row[p.jsonKey]);
+    if (!Number.isFinite(value)) return;
+    const state = parameterStatus(value, p.alarm, p.trip);
+    if (state === "NORMAL") return;
+    abnormal.push({ label: p.label, value, unit: p.unit, alarm: p.alarm, trip: p.trip, state });
+    if (state === "TRIP") worst = "TRIP";
+    else if (worst !== "TRIP") worst = "ALARM";
+  });
+  return { state: worst, abnormal };
+}
+
+// Contiguous non-normal runs in the weekly history (threshold based, same rule as the gauges).
+function episodesFor(tag) {
+  const history = C.equipment[tag]?.history || [];
+  if (!machines[tag] || !history.length) return null;
+  const states = history.map((row) => rowAssessment(tag, row));
+  const runs = [];
+  for (let i = 0; i < states.length; i++) {
+    if (states[i].state === "NORMAL") continue;
+    let end = i;
+    while (end + 1 < states.length && states[end + 1].state !== "NORMAL") end++;
+    let trip = -1;
+    for (let k = i; k <= end; k++) {
+      if (states[k].state === "TRIP") {
+        trip = k;
+        break;
+      }
+    }
+    runs.push({ start: i, end, trip });
+    i = end;
+  }
+  if (!runs.length) return null;
+  const last = runs[runs.length - 1];
+  const live = last.end === states.length - 1 ? last : null;
+  const past = live ? runs[runs.length - 2] || null : last;
+  return { history, states, live, past };
+}
+
+function diagContext(tag) {
+  const record = latestRecordForTag(tag);
+  const ep = episodesFor(tag);
+  if (!ep) {
+    return { mode: record ? "REGISTER" : "NONE", level: "HISTORICAL REVIEW", abnormal: [], record, ep: null, points: [], point: null };
+  }
+  // Selectable points: the live reading (if abnormal) and the last recorded alarm episode.
+  const points = [];
+  if (ep.live) points.push({ key: "live", idx: ep.live.end, label: "Current Reading" });
+  if (ep.past) {
+    points.push({ key: "early", idx: ep.past.start, label: "Early Warning" });
+    if (ep.past.trip >= 0) points.push({ key: "trip", idx: ep.past.trip, label: "Trip" });
+  }
+  const wanted = points.find((p) => p.key === C.diagPoint[tag]);
+  const chosen = wanted || points.find((p) => p.key === "live") || points.find((p) => p.key === "trip") || points[0];
+  const idx = chosen.idx;
+  const assessment = ep.states[idx];
+  const row = ep.history[idx];
+  const leadRun = ep.past || ep.live;
+  const first = ep.history[leadRun.start];
+  const tripRow = leadRun.trip >= 0 ? ep.history[leadRun.trip] : null;
+  // A single abnormal reading after a normal one, with the recorded health status still NORMAL,
+  // is treated as unconfirmed (possible instrument or transient issue).
+  const unconfirmed =
+    chosen.key === "live" &&
+    ep.live.start === ep.live.end &&
+    ep.live.start > 0 &&
+    String(row["Health Status"] || "").toUpperCase() === "NORMAL";
+  return {
+    mode: ep.live ? "LIVE" : "REPLAY",
+    level: assessment.state === "TRIP" ? "TRIP" : "EARLY WARNING",
+    abnormal: assessment.abnormal,
+    record,
+    ep,
+    points,
+    point: chosen.key,
+    row,
+    first,
+    tripRow,
+    hasTrip: !!tripRow,
+    leadWeeks: tripRow ? weeksBetween(first.Date, tripRow.Date) : null,
+    activeWeeks: weeksBetween(first.Date, ep.history[leadRun.end].Date),
+    unconfirmed,
+  };
+}
+
+/* ---- similar incident retrieval ---- */
+
+function buildSubject(tag, ctx) {
+  const record = ctx.record;
+  const info = C.equipment[tag]?.info || {};
+  const text = [ctx.abnormal.map((p) => p.label).join(" "), record?.["Risk Case Title"], record?.Component].join(" ");
+  return {
+    tag,
+    plant: record?.Plant || C.plant,
+    name: info["Equipment Name"] || record?.["Risk Case Title"] || tag,
+    eqType: record?.["Eq. Type"] || tag.split("-")[0],
+    component: String(record?.Component || ""),
+    discipline: record?.Discipline || info.Discipline || "",
+    domains: domainsOf(text),
+  };
+}
+
+function componentOverlap(a, b) {
+  const x = a.toLowerCase().trim();
+  const y = b.toLowerCase().trim();
+  if (!x || !y) return 0;
+  if (x === y) return 1;
+  const words = (s) => s.split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !GENERIC_COMPONENT_WORDS.includes(w));
+  const wb = words(y);
+  return words(x).some((w) => wb.includes(w)) ? 0.5 : 0;
+}
+
+function scoreCandidate(subject, c) {
+  const reasons = [];
+  let score = 0;
+  if (c["Tag Number"] === subject.tag) {
+    score += 15;
+    reasons.push("Same equipment tag");
+  }
+  if (subject.eqType && c["Eq. Type"] === subject.eqType) {
+    score += 25;
+    reasons.push("Same equipment type (" + subject.eqType + ")");
+  }
+  const comp = componentOverlap(subject.component, String(c.Component || ""));
+  if (comp) {
+    score += 20 * comp;
+    reasons.push((comp === 1 ? "Same component: " : "Related component: ") + c.Component);
+  }
+  if (subject.discipline && c.Discipline === subject.discipline) {
+    score += 5;
+    reasons.push("Same discipline (" + subject.discipline + ")");
+  }
+  const candDomains = domainsOf([c["Risk Case Title"], c.Component].join(" "));
+  const shared = [...subject.domains].filter((d) => candDomains.has(d));
+  if (shared.length) {
+    score += 35 * Math.min(1, shared.length / Math.max(1, Math.min(subject.domains.size, candDomains.size)));
+    reasons.push("Related failure domain: " + shared.join(", "));
+  }
+  return { score, reasons };
+}
+
+function findSimilarIncidents(subject, ctx) {
+  const ownAR = ctx.mode === "REGISTER" ? ctx.record?.["AR No."] : null;
+  return C.incidents
+    .filter((x) => x["Tag Number"] && !/CANCEL/i.test(String(x["Overall Status"] || "")) && x["AR No."] !== ownAR)
+    .map((row) => ({ row, ...scoreCandidate(subject, row) }))
+    .filter((m) => m.score >= 45)
+    .sort((a, b) => b.score - a.score || num(b.row["Total Loss (k US$)"]) - num(a.row["Total Loss (k US$)"]))
+    .slice(0, 6)
+    .map((m) => ({
+      ...m,
+      label: m.score >= 75 ? "HIGH" : m.score >= 55 ? "MEDIUM" : "LOW",
+      rca: rcaByAR(m.row["AR No."]),
+      relation:
+        m.row["Tag Number"] === subject.tag
+          ? "Previous incident on this equipment"
+          : m.row.Plant !== subject.plant
+            ? "Other plant (" + m.row.Plant + ")"
+            : "Same plant",
+    }));
+}
+
+/* ---- possible causes & recommended actions ---- */
+
+function buildPossibleCauses(matches) {
+  const causes = [];
+  const seen = new Set();
+  matches.forEach((m) => {
+    if (!m.rca?.root_cause || seen.has(m.rca.root_cause)) return;
+    seen.add(m.rca.root_cause);
+    causes.push({
+      text: m.rca.root_cause,
+      source: "Historical RCA · " + m.row["Tag Number"] + " · " + m.row["AR No."],
+    });
+  });
+  const counts = {};
+  matches.forEach((m) => {
+    const comp = String(m.row.Component || "").trim();
+    if (comp) counts[comp] = (counts[comp] || 0) + 1;
+  });
+  Object.entries(counts)
+    .filter(([, n]) => n >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .forEach(([comp, n]) =>
+      causes.push({
+        text: comp + " degradation — recurring component in similar incidents",
+        source: n + " of " + matches.length + " similar incidents",
+      }),
+    );
+  return causes;
+}
+
+function classifyAction(text) {
+  return /^(replace|repair|rebuild|restore|re-?align|clean|hydro|overhaul|plug|fix|renew|rectify)\b/i.test(text.trim())
+    ? "Corrective"
+    : "Preventive";
+}
+
+function buildRecommendedActions(subject, matches) {
+  const out = [];
+  const seen = new Set();
+  matches.forEach((m) => {
+    (m.rca?.corrective_actions || []).forEach((a) => {
+      const text = String(a.action || "").split(m.row["Tag Number"]).join(subject.tag);
+      const key = text.toLowerCase();
+      if (!text || seen.has(key)) return;
+      seen.add(key);
+      out.push({
+        text,
+        type: classifyAction(text),
+        pic: a.pic || "",
+        histStatus: a.status || "",
+        source: "Recommended based on similar historical cases",
+        ref: m.row["Tag Number"] + " · " + m.row["AR No."],
+        sourceAR: m.row["AR No."],
+      });
+    });
+  });
+  (C.rcaWork[subject.tag]?.actions || []).forEach((a) => {
+    if (seen.has(a.text.toLowerCase())) return;
+    seen.add(a.text.toLowerCase());
+    out.push({
+      text: a.text,
+      type: a.type,
+      pic: "",
+      histStatus: "",
+      source: "Defined during RCA Analysis",
+      ref: "User-defined",
+      sourceAR: "",
+    });
+  });
+  return out;
+}
+
+function runDiagnostics(tag) {
+  const ctx = diagContext(tag);
+  const subject = buildSubject(tag, ctx);
+  const matches = ctx.mode === "NONE" ? [] : findSimilarIncidents(subject, ctx);
+  return { ctx, subject, matches, causes: buildPossibleCauses(matches), actions: buildRecommendedActions(subject, matches) };
+}
 
 function actionAlreadyAssigned(action) {
   return C.tasks.find(
     (t) =>
       t.tag === C.tag &&
-      t.action === action.action &&
+      t.action === action.text &&
       ["ASSIGNED", "IN_PROGRESS", "PENDING_VERIFICATION"].includes(t.status),
   );
 }
+
+/* ---- RCA workspace state ---- */
+
+function rcaState(tag) {
+  C.rcaWork[tag] ??= {
+    open: false,
+    problem: "",
+    evidence: "",
+    findings: "",
+    rootCause: "",
+    confirmedBy: "",
+    confirmedAt: "",
+    actions: [],
+  };
+  return C.rcaWork[tag];
+}
+
+function loadRcaWork() {
+  try {
+    const v = JSON.parse(localStorage.getItem(C.rcaKey) || "{}");
+    return v && typeof v === "object" ? v : {};
+  } catch (err) {
+    console.warn("Saved RCA work could not be read.", err);
+    return {};
+  }
+}
+
+function saveRca() {
+  try {
+    localStorage.setItem(C.rcaKey, JSON.stringify(C.rcaWork));
+  } catch (err) {
+    console.warn("RCA work could not be saved.", err);
+  }
+}
+
+function rerender() {
+  const y = window.scrollY;
+  render();
+  window.scrollTo(0, y);
+}
+
+/* ---- render ---- */
+
+function conditionText(ctx) {
+  if (ctx.mode === "REGISTER")
+    return "No threshold telemetry is configured for this tag. Diagnostics rely on the incident register and any linked RCA records.";
+  if (ctx.mode === "NONE") return "No telemetry and no incident record are available for this tag.";
+  const params = ctx.abnormal.map((p) => p.label).join(", ");
+  if (ctx.unconfirmed)
+    return params + " crossed a threshold in a single reading only. The previous reading and the recorded health status are normal, so this is unconfirmed. Verify the instrument and trend before treating it as a trip.";
+  if (ctx.level === "TRIP") return params + " crossed the trip threshold. Diagnostic review is recommended.";
+  return params + " reached an alarm condition. Review similar cases and preventive actions before it escalates.";
+}
+
 function renderDiagnostics() {
-  const r = selectedRCA();
-  const record = selectedIncidents()[0];
-  const machine = calculateMachineHealth(C.tag);
-  const alert = getEquipmentAlert(machine);
-  if (!r)
-    return `
-    <p class="eyebrow">DECIDE / DIAGNOSTICS</p>
-    <h1>${esc(C.tag)} — AI-Assisted Diagnostics</h1>
-    <div class="card">
-      <p class="muted">Detailed RCA is not provided for this equipment. Incident history remains available in Incident Center.</p>
+  const tagOptions = tagsForPlant();
+  if (!tagOptions.includes(C.tag)) C.tag = tagOptions[0] || "";
+  const d = runDiagnostics(C.tag);
+  const { ctx, subject, matches, causes, actions } = d;
+  const record = ctx.record;
+  const isManager = C.role === "manager";
+  const sel = new Set(C.diagSel[C.tag] || []);
+  const levelClass = ctx.level === "TRIP" ? "trip" : ctx.level === "EARLY WARNING" ? "alarm" : "normal";
+
+  const header = `
+    <div class="page-header">
+      <div>
+        <p class="eyebrow">DECIDE / DIAGNOSTICS</p>
+        <h1>${esc(C.tag)} — AI-Assisted Diagnostics</h1>
+        <p class="muted">Decision support: similar incidents, historical RCA and recommended actions. A root cause is confirmed only through RCA Analysis.</p>
+      </div>
+      <div class="filter-box">
+        <label>Equipment Tag</label>
+        <select onchange="chooseTag(this.value)">
+          ${tagOptions.map((t) => `<option value="${esc(t)}" ${t === C.tag ? "selected" : ""}>${esc(t)}</option>`).join("")}
+        </select>
+      </div>
     </div>`;
-  const actions = r.corrective_actions || [];
-  const actualLoss = record ? num(record["Act. Loss (k US$)"]) * 1000 : num(r.estimated_loss_usd);
-  const potentialLoss = record ? num(record["Pot. Loss (k US$)"]) * 1000 : 0;
-  const mode = alert?.level || "HISTORICAL REVIEW";
-  const modeClass = mode === "TRIP" ? "trip" : mode === "EARLY WARNING" ? "alarm" : "normal";
-  return `
-    <p class="eyebrow">DECIDE / DIAGNOSTICS</p>
-    <h1>${esc(C.tag)} — AI-Assisted Diagnostics</h1>
+
+  /* 1. condition + incident summary */
+  const pointButtons =
+    ctx.points.length > 1 || ctx.mode === "REPLAY"
+      ? `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          ${ctx.points
+            .map(
+              (p) =>
+                `<button class="btn ${ctx.point === p.key ? "" : "outline"}" onclick="setDiagPoint('${p.key}')">${esc(p.label)} · Week ${esc(ctx.ep.history[p.idx].Week)}</button>`,
+            )
+            .join("")}
+        </div>
+        <p class="muted" style="margin-top:12px">${
+          ctx.mode === "REPLAY"
+            ? "Replay of the last recorded alarm episode (the latest reading is back to normal). "
+            : ""
+        }Incident records on this tag are used as historical reference.</p>`
+      : "";
+
+  const paramTable = ctx.abnormal.length
+    ? `<div class="table-wrap" style="margin-top:14px"><table>
+        <thead><tr><th>Parameter</th><th>Current Reading</th><th>Alarm Threshold</th><th>Trip Threshold</th><th>Status</th></tr></thead>
+        <tbody>${ctx.abnormal
+          .map(
+            (p) => `<tr>
+            <td>${esc(p.label)}</td>
+            <td>${esc(p.value)} ${esc(p.unit)}</td>
+            <td>${esc(p.alarm)}</td>
+            <td>${esc(p.trip)}</td>
+            <td><span class="badge ${p.state.toLowerCase()}">${esc(p.state)}</span></td>
+          </tr>`,
+          )
+          .join("")}</tbody></table></div>`
+    : "";
+
+  const leadCard =
+    ctx.mode === "REGISTER" || ctx.mode === "NONE"
+      ? card("Early-Warning Lead Time", "—", "No weekly telemetry for this tag")
+      : ctx.hasTrip
+        ? card("Early-Warning Lead Time", ctx.leadWeeks + " weeks", "Recorded episode: first alarm " + ctx.first.Date + " → trip " + ctx.tripRow.Date)
+        : card("Alarm Active", ctx.activeWeeks + " weeks", "Since " + ctx.first.Date + " · no trip yet");
+
+  const summary = `
     <div class="card">
       <div class="card-heading">
         <div>
-          <p class="eyebrow">DIAGNOSTIC TRIGGER</p>
-          <h3>${esc(mode)}</h3>
-          <p class="muted">${alert ? esc(alert.text) : "No active threshold alert. This view uses the selected equipment's historical RCA and incident evidence."}</p>
+          <p class="eyebrow">INCIDENT SUMMARY</p>
+          <h3>${esc(subject.name)}</h3>
+          <p class="muted">${esc(conditionText(ctx))}</p>
         </div>
-        <span class="badge ${modeClass}">${esc(mode)}</span>
+        <span class="badge ${levelClass}">${esc(ctx.level)}</span>
       </div>
+      ${paramTable}
+      ${pointButtons}
     </div>
     <div class="kpi-grid">
-      ${card("Historical Actual Loss", usd(actualLoss))}
-      ${card("Historical Potential Loss", usd(potentialLoss))}
-      ${card("Downtime", r.downtime_hours + " h")}
-      ${card("RCA Owner", r.pic)}
-    </div>
-    <div class="dashboard-grid">
-      <div class="card">
-        <p class="eyebrow">VERIFIED RCA</p>
-        <h3>Root Cause</h3>
-        <p class="muted">${esc(r.root_cause)}</p>
-        <h3>Problem Statement</h3>
-        <p class="muted">${esc(r.problem_statement)}</p>
-      </div>
-      <div class="card">
-        <p class="eyebrow">INCIDENT CHRONOLOGY</p>
-        <h3>Historical Timeline</h3>
-        ${(r.chronology || [])
-          .map(
-            (x) => `
-          <div class="timeline">${esc(x)}</div>`,
-          )
-          .join("")}
-      </div>
-    </div>
+      ${card("Incident Record", record ? record["AR No."] : "None", record ? record["Risk Case Title"] : "No incident registered for this tag")}
+      ${card("Record Status", record ? record["Overall Status"] : "—", record ? "RCA due " + (record["RCA Due Date"] || "—") : "")}
+      ${card("Downtime", record ? num(record["Downtime (hrs)"]) + " h" : "—", "Incident Database")}
+      ${card("Actual Loss", record ? usd(num(record["Act. Loss (k US$)"]) * 1000) : "—", "Incident Database")}
+      ${card("Potential Loss", record ? usd(num(record["Pot. Loss (k US$)"]) * 1000) : "—", "Incident Database")}
+      ${leadCard}
+    </div>`;
+
+  /* 2. similar incidents */
+  const rcaCount = matches.filter((m) => m.rca).length;
+  const plantCount = new Set(matches.map((m) => m.row.Plant)).size;
+  const similar = `
     <div class="card">
-      <p class="eyebrow">DECIDE / RECOMMENDATION</p>
-      <h3>Recommended Corrective & Preventive Actions</h3>
-      <p class="muted">Actions are surfaced from the verified RCA for this equipment. Assignment remains a human decision and is not performed autonomously.</p>
+      <p class="eyebrow">SIMILAR HISTORICAL INCIDENTS</p>
+      <h3>${matches.length ? matches.length + " Similar Incidents Found" : "No matching historical incident found."}</h3>
+      ${
+        matches.length
+          ? `<p class="muted">Rule-based retrieval across all plants: equipment tag and type, component, discipline and related failure domain. Cancelled risks are excluded.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Relevance</th><th>Incident</th><th>Why it matched</th><th>Historical RCA</th></tr></thead>
+          <tbody>${matches
+            .map(
+              (m) => `<tr>
+            <td><span class="badge">${esc(m.label)}</span></td>
+            <td><strong>${esc(m.row["Tag Number"])}</strong> · ${esc(m.row["AR No."])}<br>
+              ${esc(m.row["Risk Case Title"])}<br><small class="muted">${esc(m.relation)} · ${esc(m.row["Overall Status"])}</small></td>
+            <td>${m.reasons.map((r) => esc(r)).join("<br>")}</td>
+            <td>${m.rca ? "Available" : "Not available"}</td>
+          </tr>`,
+            )
+            .join("")}</tbody></table></div>`
+          : `<p class="muted">The diagnostic can only reference incidents that exist in the Incident Database.</p>`
+      }
+    </div>`;
+
+  /* 3. historical RCA reference */
+  const rcaMatches = matches.filter((m) => m.rca).slice(0, 3);
+  const rcaRef = matches.length
+    ? `<div class="card">
+        <p class="eyebrow">HISTORICAL RCA REFERENCE</p>
+        <h3>Reference from Similar Cases</h3>
+        ${
+          rcaMatches.length
+            ? `<p class="muted">Historical RCA is evidence, not the RCA of the current condition. The root cause of the current condition is not confirmed.</p>
+          ${rcaMatches
+            .map(
+              (m) => `<div class="hint">
+            <strong>Similar case: ${esc(m.row["Tag Number"])} — ${esc(m.row["AR No."])}</strong>
+            <small class="muted"> · ${esc(m.relation)}</small>
+            <p><strong>Historical root cause:</strong> A similar historical incident was associated with: ${esc(m.rca.root_cause)}</p>
+            <p><strong>Historical corrective / preventive actions:</strong></p>
+            ${(m.rca.corrective_actions || []).map((a) => `<div class="timeline">${esc(a.action)}</div>`).join("")}
+          </div>`,
+            )
+            .join("")}`
+            : `<p class="muted"><strong>Similar Historical Incident Found.</strong> No historical RCA available for this case.</p>`
+        }
+      </div>`
+    : "";
+
+  /* 4. possible causes + evidence summary */
+  const causesCard = `
+    <div class="card">
+      <p class="eyebrow">POSSIBLE CAUSES</p>
+      <h3>Hypotheses from Evidence</h3>
+      ${
+        causes.length
+          ? `<p class="muted">These are possible causes drawn from similar cases, not confirmed root causes.</p>
+        ${causes.map((c) => `<div class="timeline"><strong>Possible cause:</strong> ${esc(c.text)}<br><small class="muted">${esc(c.source)}</small></div>`).join("")}`
+          : `<p class="muted">Insufficient evidence to determine a likely cause. Further inspection is recommended.</p>`
+      }
+    </div>`;
+  const evidenceCard = `
+    <div class="card">
+      <p class="eyebrow">EVIDENCE BASE</p>
+      <h3>What this view is based on</h3>
+      <div class="timeline">${ctx.abnormal.length ? ctx.abnormal.length + " abnormal parameter(s) at the selected point" : "No abnormal parameter available"}</div>
+      <div class="timeline">${matches.length} similar incident(s) across ${plantCount} plant(s)</div>
+      <div class="timeline">${rcaCount} of ${matches.length} similar incident(s) have a historical RCA</div>
+      <div class="timeline">${record ? "Latest record on this tag: " + esc(record["AR No."]) : "No incident record on this tag"}</div>
+    </div>`;
+
+  /* 5. recommended actions */
+  const groupRows = (type) =>
+    actions
+      .map((a, i) => ({ a, i }))
+      .filter(({ a }) => a.type === type)
+      .map(({ a, i }) => {
+        const task = actionAlreadyAssigned(a);
+        return `<tr>
+          <td style="width:34px">${
+            isManager && !task
+              ? `<input type="checkbox" style="width:auto;margin:0;padding:0" ${sel.has(a.text) ? "checked" : ""} onchange="toggleDiagAction(${i})">`
+              : ""
+          }</td>
+          <td>${esc(a.text)}<br><small class="muted">${esc(a.source)} · ${esc(a.ref)}</small></td>
+          <td>${esc(a.pic || "—")}</td>
+          <td>${esc(a.histStatus || "—")}</td>
+          <td>${task ? `<span class="badge">${esc(task.status)}</span>` : isManager ? "" : `<span class="muted">Manager only</span>`}</td>
+        </tr>`;
+      })
+      .join("");
+  const actionGroup = (title, note, type) => {
+    const rows = groupRows(type);
+    if (!rows) return "";
+    return `<h3 style="margin-top:18px">${title}</h3>
+      <p class="muted">${note}</p>
       <div class="table-wrap"><table>
-        <thead><tr><th>Action</th><th>PIC</th><th>Reference Date</th><th>Status</th><th>Assignment</th></tr></thead>
-        <tbody>${actions
-          .map((x, i) => {
-            const task = actionAlreadyAssigned(x);
-            return `<tr>
-            <td>${esc(x.action)}</td>
-            <td>${esc(x.pic)}</td>
-            <td>${esc(x.plan_date || "—")}</td>
-            <td>${esc(x.status)}</td>
-            <td>${
-              C.role === "manager"
-                ? task
-                  ? `<span class="badge">${esc(task.status)}</span>`
-                  : `<button class="btn" onclick="openAssignModal(${i})">Assign</button>`
-                : `<span class="muted">Manager only</span>`
-            }</td>
-          </tr>`;
-          })
-          .join("")}</tbody>
-      </table></div>
-    </div>
-    ${C.assigningActionIndex !== null ? renderAssignModal(actions[C.assigningActionIndex]) : ""}
-    `;
+        <thead><tr><th></th><th>Action</th><th>Historical PIC</th><th>Historical Status</th><th>Assignment</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>`;
+  };
+  const rca = rcaState(C.tag);
+  const actionsCard = `
+    <div class="card">
+      <div class="card-heading">
+        <div>
+          <p class="eyebrow">DECIDE / RECOMMENDATION</p>
+          <h3>Recommended Actions</h3>
+          <p class="muted">Review and select the actions to carry forward. Nothing is sent to the Action Hub automatically.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn outline" onclick="startRca()">${rca.open ? "RCA Analysis Open ↓" : "Start RCA Analysis"}</button>
+          ${isManager ? `<button class="btn" ${sel.size ? "" : "disabled style=\"opacity:.5;cursor:not-allowed\""} onclick="openActionPlan()">Create Action Plan (${sel.size})</button>` : ""}
+        </div>
+      </div>
+      ${
+        actions.length
+          ? actionGroup(
+              "A. Immediate Corrective Action",
+              ctx.level === "EARLY WARNING"
+                ? "Failure has not occurred yet. Listed for readiness if the condition escalates."
+                : "For a trip or failure that needs prompt action.",
+              "Corrective",
+            ) +
+            actionGroup("B. Preventive / Pro-active Action", "To prevent recurrence or reduce risk.", "Preventive") +
+            (isManager ? "" : `<p class="muted" style="margin-top:14px">Only managers can select and assign actions.</p>`)
+          : `<p class="muted">${
+              matches.length
+                ? "No historical RCA or CAPA is available for the similar incidents, so no actions can be recommended. Further inspection is recommended."
+                : "No matching historical incident found, so no actions can be recommended."
+            } You can still start RCA Analysis and define actions from the investigation.</p>`
+      }
+    </div>`;
+
+  return `
+    ${header}
+    ${summary}
+    ${similar}
+    ${rcaRef}
+    <div class="dashboard-grid">${causesCard}${evidenceCard}</div>
+    ${actionsCard}
+    ${rca.open ? renderRcaAnalysis(d) : ""}
+    ${C.assigningPlan ? renderAssignModal(d) : ""}`;
 }
-function renderAssignModal(action) {
-  if (!action) return "";
+
+function renderRcaAnalysis(d) {
+  const { ctx, subject, matches, causes } = d;
+  const s = rcaState(C.tag);
+  const record = ctx.record;
+  const defaultProblem =
+    C.tag +
+    " — " +
+    ctx.level.toLowerCase() +
+    (ctx.abnormal.length ? ": " + ctx.abnormal.map((p) => p.label + " " + p.value + " " + p.unit).join(", ") : "");
+  const chronology = ctx.ep
+    ? [
+        ctx.first && "Week " + ctx.first.Week + " · " + ctx.first.Date + ": first threshold deviation recorded.",
+        ctx.tripRow && "Week " + ctx.tripRow.Week + " · " + ctx.tripRow.Date + ": " + (ctx.tripRow.Remark || "trip recorded."),
+      ].filter(Boolean)
+    : record
+      ? [record["Date of Occur."] + ": " + record["Risk Case Title"]]
+      : [];
+  const confirmed = !!s.confirmedAt;
+  return `
+    <div class="card" id="rca-analysis">
+      <div class="card-heading">
+        <div>
+          <p class="eyebrow">RCA ANALYSIS</p>
+          <h3>${esc(C.tag)} — Root Cause Investigation</h3>
+          <p class="muted">Investigation workspace. Confirmed Root Cause is filled by the investigator, never by historical RCA.</p>
+        </div>
+        <span class="badge ${confirmed ? "normal" : "alarm"}">${confirmed ? "ROOT CAUSE CONFIRMED" : "INVESTIGATION OPEN"}</span>
+      </div>
+
+      <label>Incident</label>
+      <p class="muted">${esc(record ? record["AR No."] + " · " + record["Risk Case Title"] : "No incident record linked")} · ${esc(subject.name)}</p>
+
+      <label>Problem Statement</label>
+      <textarea rows="3" style="width:100%" oninput="rcaInput('problem',this.value)">${esc(s.problem || defaultProblem)}</textarea>
+
+      <label>Incident Chronology</label>
+      ${chronology.length ? chronology.map((x) => `<div class="timeline">${esc(x)}</div>`).join("") : `<p class="muted">No chronology available.</p>`}
+
+      <label>Evidence</label>
+      ${ctx.abnormal.map((p) => `<div class="timeline">${esc(p.label)}: ${esc(p.value)} ${esc(p.unit)} (${esc(p.state)}; alarm ${esc(p.alarm)}, trip ${esc(p.trip)})</div>`).join("")}
+      <textarea rows="3" style="width:100%" placeholder="Add inspection findings, photos reference, field observations" oninput="rcaInput('evidence',this.value)">${esc(s.evidence)}</textarea>
+
+      <label>Similar Historical Cases</label>
+      ${matches.length ? matches.map((m) => `<div class="timeline">${esc(m.row["Tag Number"])} · ${esc(m.row["AR No."])} — ${esc(m.row["Risk Case Title"])}${m.rca ? " (RCA available)" : ""}</div>`).join("") : `<p class="muted">No matching historical incident found.</p>`}
+
+      <label>Possible Causes</label>
+      ${causes.length ? causes.map((c) => `<div class="timeline">${esc(c.text)}</div>`).join("") : `<p class="muted">Insufficient evidence to determine a likely cause.</p>`}
+
+      <label>Investigation Findings</label>
+      <textarea rows="4" style="width:100%" placeholder="What did the investigation find?" oninput="rcaInput('findings',this.value)">${esc(s.findings)}</textarea>
+
+      <label>Confirmed Root Cause</label>
+      ${
+        confirmed
+          ? `<div class="hint"><strong>${esc(s.rootCause)}</strong>
+              <p class="muted">Confirmed by ${esc(s.confirmedBy)} on ${esc(s.confirmedAt.slice(0, 10))}</p></div>
+            <button class="btn outline" onclick="reopenRca()">Reopen Investigation</button>`
+          : `<p class="muted">Not yet determined</p>
+            <textarea rows="3" style="width:100%" placeholder="State the root cause supported by your findings" oninput="rcaInput('rootCause',this.value)">${esc(s.rootCause)}</textarea>
+            <button class="btn" onclick="confirmRootCause()">Confirm Root Cause</button>`
+      }
+
+      <label>Corrective &amp; Preventive Actions</label>
+      <p class="muted">Select from the Recommended Actions above, or add an action defined by this investigation.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <input id="rca-new-action" placeholder="New action" style="flex:1;min-width:220px">
+        <select id="rca-new-type"><option>Corrective</option><option>Preventive</option></select>
+        <button class="btn outline" onclick="addRcaAction()">Add Action</button>
+      </div>
+    </div>`;
+}
+
+function renderAssignModal(d) {
+  const chosen = (C.diagSel[C.tag] || []).map((text) => d.actions.find((a) => a.text === text)).filter(Boolean);
+  if (!chosen.length) return "";
+  const staff = USERS.filter((u) => u.role === "staff").map((u) => u.id);
+  const defaultPriority = d.ctx.level === "TRIP" && !d.ctx.unconfirmed ? "High" : "Medium";
+  const today = new Date().toISOString().slice(0, 10);
   return `
     <div id="assign-modal" style="position:fixed;inset:0;background:rgba(15,23,42,.35);backdrop-filter:blur(5px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px">
-      <div class="card" style="width:min(560px,100%);box-shadow:0 24px 60px rgba(15,23,42,.22)">
+      <div class="card" style="width:min(860px,100%);max-height:90vh;overflow:auto;box-shadow:0 24px 60px rgba(15,23,42,.22)">
         <div class="card-heading">
           <div>
             <p class="eyebrow">ACTION ASSIGNMENT</p>
-            <h3>Assign Recommended Action</h3>
+            <h3>Assign ${chosen.length} Selected Action${chosen.length > 1 ? "s" : ""}</h3>
+            <p class="muted">Deadline is required and is set by you. PIC is pre-filled from the historical RCA when available.</p>
           </div>
-          <button class="btn outline" onclick="closeAssignModal()">Close</button>
+          <button class="btn outline" onclick="closeAssignModal()">Cancel</button>
         </div>
-        <label>Action</label>
-        <input value="${esc(action.action)}" disabled>
-        <label>PIC</label>
-        <input value="${esc(action.pic)}" disabled>
-        <label>Deadline</label>
-        <input id="assign-deadline" type="date">
-        <p class="muted">Reference RCA date: ${esc(action.plan_date || "Not provided")}. Set the execution deadline for this assignment.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Action</th><th>Type</th><th>PIC</th><th>Priority</th><th>Deadline</th></tr></thead>
+          <tbody>${chosen
+            .map((a, i) => {
+              const pics = a.pic && !staff.includes(a.pic) ? [a.pic, ...staff] : staff;
+              return `<tr>
+              <td>${esc(a.text)}</td>
+              <td><span class="badge">${esc(a.type)}</span></td>
+              <td><select id="as-pic-${i}">
+                <option value="">Select PIC</option>
+                ${pics.map((p) => `<option value="${esc(p)}" ${p === a.pic ? "selected" : ""}>${esc(p)}</option>`).join("")}
+              </select></td>
+              <td><select id="as-pri-${i}">
+                ${["High", "Medium", "Low"].map((p) => `<option ${p === defaultPriority ? "selected" : ""}>${p}</option>`).join("")}
+              </select></td>
+              <td><input id="as-due-${i}" type="date" min="${today}"></td>
+            </tr>`;
+            })
+            .join("")}</tbody></table></div>
         <div class="card-heading" style="margin-top:18px;margin-bottom:0">
-          <span class="muted">Action and PIC are populated from the RCA.</span>
-          <button class="btn" onclick="confirmAssign()">Assign Task</button>
+          <span class="muted">Assigned actions move to the Action Hub with status ASSIGNED.</span>
+          <button class="btn" onclick="confirmAssign()">Assign</button>
         </div>
       </div>
     </div>`;
 }
-function openAssignModal(index) {
+
+/* ---- handlers ---- */
+
+function setDiagPoint(point) {
+  C.diagPoint[C.tag] = point;
+  C.diagSel[C.tag] = [];
+  rerender();
+}
+
+function toggleDiagAction(index) {
   if (C.role !== "manager") return;
-  C.assigningActionIndex = index;
-  render();
+  const action = runDiagnostics(C.tag).actions[index];
+  if (!action) return;
+  const sel = new Set(C.diagSel[C.tag] || []);
+  if (sel.has(action.text)) sel.delete(action.text);
+  else sel.add(action.text);
+  C.diagSel[C.tag] = [...sel];
+  rerender();
 }
+
+function openActionPlan() {
+  if (C.role !== "manager" || !(C.diagSel[C.tag] || []).length) return;
+  C.assigningPlan = true;
+  rerender();
+}
+
 function closeAssignModal() {
-  C.assigningActionIndex = null;
-  render();
+  C.assigningPlan = false;
+  rerender();
 }
+
 function confirmAssign() {
   if (C.role !== "manager") return;
-  const r = selectedRCA();
-  const action = r?.corrective_actions?.[Number(C.assigningActionIndex)];
-  if (!action) return alert("No action selected.");
-  const due = $("#assign-deadline")?.value;
-  if (!due) return alert("Please enter a deadline.");
-  C.tasks.push({
-    id: "TASK-" + Date.now(),
-    ar: r.ar_number,
-    tag: C.tag,
-    plant: C.plant,
-    action: action.action,
-    pic: action.pic,
-    due,
-    status: "ASSIGNED",
-    evidence: "",
-    history: [{ by: C.user, status: "ASSIGNED", at: new Date().toISOString() }],
+  const d = runDiagnostics(C.tag);
+  const chosen = (C.diagSel[C.tag] || []).map((text) => d.actions.find((a) => a.text === text)).filter(Boolean);
+  if (!chosen.length) return alert("No action selected.");
+
+  const rows = chosen.map((a, i) => ({
+    a,
+    pic: document.getElementById("as-pic-" + i)?.value || "",
+    priority: document.getElementById("as-pri-" + i)?.value || "Medium",
+    due: document.getElementById("as-due-" + i)?.value || "",
+  }));
+  if (rows.some((r) => !r.due)) return alert("Please enter a deadline for every action.");
+  if (rows.some((r) => !r.pic)) return alert("Please select a PIC for every action.");
+
+  const stamp = Date.now();
+  rows.forEach((r, i) => {
+    C.tasks.push({
+      id: "TASK-" + stamp + "-" + i,
+      ar: d.ctx.record?.["AR No."] || "—",
+      tag: C.tag,
+      plant: C.plant,
+      action: r.a.text,
+      type: r.a.type,
+      priority: r.priority,
+      source: r.a.source + " (" + r.a.ref + ")",
+      pic: r.pic,
+      due: r.due,
+      status: "ASSIGNED",
+      evidence: "",
+      history: [{ by: C.user, status: "ASSIGNED", at: new Date().toISOString() }],
+    });
   });
   save();
-  C.assigningActionIndex = null;
+  C.diagSel[C.tag] = [];
+  C.assigningPlan = false;
   go("tasks");
+}
+
+function startRca() {
+  const s = rcaState(C.tag);
+  s.open = true;
+  saveRca();
+  rerender();
+  document.getElementById("rca-analysis")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function rcaInput(field, value) {
+  rcaState(C.tag)[field] = value;
+  saveRca();
+}
+
+function confirmRootCause() {
+  const s = rcaState(C.tag);
+  if (!s.findings.trim()) return alert("Please record the investigation findings first.");
+  if (!s.rootCause.trim()) return alert("Please state the confirmed root cause.");
+  s.confirmedBy = C.user;
+  s.confirmedAt = new Date().toISOString();
+  saveRca();
+  rerender();
+}
+
+function reopenRca() {
+  const s = rcaState(C.tag);
+  s.confirmedBy = "";
+  s.confirmedAt = "";
+  saveRca();
+  rerender();
+}
+
+function addRcaAction() {
+  const text = document.getElementById("rca-new-action")?.value.trim();
+  const type = document.getElementById("rca-new-type")?.value || "Corrective";
+  if (!text) return alert("Please describe the action.");
+  const s = rcaState(C.tag);
+  s.actions.push({ text, type });
+  saveRca();
+  rerender();
 }
 
 /* ---------------- TASKS ---------------- */
@@ -1530,6 +2204,10 @@ function resetTasks() {
   render();
 }
 
+function isOverdue(t) {
+  return t.status !== "VERIFIED" && String(t.due || "") < new Date().toISOString().slice(0, 10);
+}
+
 function renderTasks() {
   const rows = C.role === "manager" ? C.tasks : C.tasks.filter((x) => x.pic === C.user);
 
@@ -1562,11 +2240,15 @@ function renderTasks() {
             <p class="eyebrow">${esc(t.id)}</p>
             <h3>${esc(t.tag)} — ${esc(t.action)}</h3>
           </div>
-          <span class="badge">${esc(t.status)}</span>
+          <span>
+            ${isOverdue(t) ? `<span class="badge trip">OVERDUE</span>` : ""}
+            <span class="badge">${esc(t.status)}</span>
+          </span>
         </div>
         <p class="muted">
-          ${esc(t.ar)} · PIC ${esc(t.pic)} · Due ${esc(t.due)}
+          ${esc(t.ar)} · PIC ${esc(t.pic)} · Due ${esc(t.due)}${t.type ? " · " + esc(t.type) : ""}${t.priority ? " · " + esc(t.priority) + " priority" : ""}
         </p>
+        ${t.source ? `<p class="muted"><small>${esc(t.source)}</small></p>` : ""}
         ${
           t.evidence
             ? `
