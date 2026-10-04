@@ -381,9 +381,9 @@ function renderLogin() {
         <h1>Welcome back</h1>
         <p class="muted">Sign in to your manufacturing workspace.</p>
         <label>User ID</label>
-        <input id="login-id" placeholder="MGR-01 / ROT-01">
+        <input id="login-id" placeholder="REL-05">
         <label>Password</label>
-        <input id="login-pass" type="password" placeholder="Password">
+        <input id="login-pass" type="password" placeholder="demo123">
         <p id="login-error" class="danger-text"></p>
         <button class="btn full" onclick="login()">Sign In →</button>
         <small class="muted">
@@ -455,7 +455,6 @@ function shell(content) {
           <div><strong>${esc(C.plant)} Workspace</strong>
             <span class="muted"> / ${esc(pageLabel(C.page))}</span></div>
           <div class="user-area">
-            <span class="role-badge">${esc(C.role.toUpperCase())}</span>
             <strong>${esc(C.user)}</strong>
             <button class="btn outline" onclick="logout()">Log out</button>
           </div>
