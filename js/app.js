@@ -20,6 +20,7 @@ const C = {
   selectedTrendParam: null,
   assigningPlan: false,
   diagSel: {},
+  activeCaseId: null,
   cases: [],
   caseKey: "cakra-cases-v1",
 };
@@ -420,14 +421,15 @@ function choosePlant(p) {
   go("plant-performance");
 }
 function chooseTag(tag) {
-  console.log("TAG DIPILIH:", tag);
   C.tag = tag;
+  C.activeCaseId = null;
   C.selectedTrendParam = null;
   C.assigningPlan = false;
   render();
 }
 function openDiagnostics(tag = C.tag) {
   if (tag) C.tag = tag;
+  C.activeCaseId = null;
   C.assigningPlan = false;
   go("diagnostics");
 }
@@ -1364,7 +1366,7 @@ function renderIncidents() {
 
 // Generic failure-domain vocabulary used to relate parameters and incident titles.
 const DOMAIN_TERMS = {
-  seal: ["seal", "flush", "leak", "weep"],
+  seal: ["seal", "flush", "weep"],
   vibration: ["vibration", "misalign", "coupling", "soft-foot", "softfoot", "unbalance", "imbalance", "resonance", "harmonic", "offset"],
   bearing: ["bearing", "babbitt", "journal", "lube", "lubric", "grease", "greasing", "oil", "thrust", "water", "contamination"],
   thermal: ["temp", "overheat", "thermal", "winding"],
@@ -1460,16 +1462,16 @@ function saveCases() {
   }
 }
 
+// The case shown for a tag: the one picked explicitly, otherwise the most recently registered.
 function activeCase(tag = C.tag) {
-  return (
-    C.cases
-      .filter((c) => c.tag === tag)
-      .sort(
-        (a, b) =>
-          String(b.tripDate).localeCompare(String(a.tripDate)) ||
-          String(b.registeredAt).localeCompare(String(a.registeredAt)),
-      )[0] || null
-  );
+  const mine = C.cases.filter((c) => c.tag === tag);
+  const picked = mine.find((c) => c.id === C.activeCaseId);
+  if (picked) return picked;
+  return mine.sort((a, b) => String(b.registeredAt).localeCompare(String(a.registeredAt)))[0] || null;
+}
+
+function casesForTag(tag = C.tag) {
+  return C.cases.filter((c) => c.tag === tag).sort((a, b) => String(b.registeredAt).localeCompare(String(a.registeredAt)));
 }
 
 function caseById(id) {
@@ -1507,24 +1509,47 @@ function tripSnapshot(tag) {
   return a.state === "TRIP" ? { row, abnormal: a.abnormal } : null;
 }
 
+// Identity of a trip = record date + which parameters tripped at which values.
+// A different trip (e.g. temperature instead of vibration) therefore always becomes a NEW case,
+// even when an earlier case on the same tag is already RISK CLOSED.
+const sigOf = (date, abnormal) =>
+  date + "|" + (abnormal || []).map((p) => p.label + "=" + p.value).sort().join(",");
+const caseSig = (c) => c.sig || sigOf(c.recordDate || c.tripDate, c.abnormal);
+
 // Trip on the latest record -> automatically registered as an incident case (NEW REGISTERED).
 function syncCases() {
   let changed = false;
   Object.keys(machines).forEach((tag) => {
     const snap = tripSnapshot(tag);
     if (!snap) return;
-    const id = "CASE-" + tag + "-" + snap.row.Date;
-    if (C.cases.some((c) => c.id === id)) return;
+    const sig = sigOf(snap.row.Date, snap.abnormal);
+    const mine = casesForTag(tag);
+    if (mine.some((c) => caseSig(c) === sig)) return; // this exact trip is already registered
+
+    // Downtime starts at the record date, unless an earlier case on this tag was already closed on/after
+    // that date (the record date cannot be the start of a trip that happened after the closure).
+    const lastClosed = mine
+      .map((c) => (c.closedAt || "").slice(0, 10))
+      .filter(Boolean)
+      .sort()
+      .pop();
+    const startDate = lastClosed && snap.row.Date <= lastClosed ? nowIso().slice(0, 10) : snap.row.Date;
+
+    let id = "CASE-" + tag + "-" + startDate;
+    for (let n = 2; C.cases.some((c) => c.id === id); n++) id = "CASE-" + tag + "-" + startDate + "-" + n;
+
     const info = C.equipment[tag]?.info || {};
     const at = nowIso();
     C.cases.push({
       id,
+      sig,
       tag,
       plant: plantCodeOf(tag),
       name: info["Equipment Name"] || tag,
       discipline: info.Discipline || latestRecordForTag(tag)?.Discipline || "",
       owner: ownerFor(tag),
-      tripDate: snap.row.Date,
+      recordDate: snap.row.Date,
+      tripDate: startDate,
       tripWeek: snap.row.Week,
       tripRemark: snap.row.Remark || "",
       abnormal: snap.abnormal,
@@ -1611,79 +1636,77 @@ function diagContext(c) {
 
 /* ---- similar incident retrieval ---- */
 
+/*
+  Similarity is driven by WHAT TRIPPED NOW (the failure domain of the tripped parameters),
+  never by the previous incident recorded on the same tag. Equipment attributes (type, discipline,
+  tag) only refine the ranking among incidents that already share a failure domain.
+*/
 function buildSubject(tag, ctx) {
-  const record = ctx.record;
+  const record = ctx.record; // used ONLY for static equipment attributes (type), not for the failure itself
   const info = C.equipment[tag]?.info || {};
-  const text = [ctx.abnormal.map((p) => p.label).join(" "), record?.["Risk Case Title"], record?.Component].join(" ");
+  const text = ctx.abnormal.map((p) => p.label).join(" ");
   return {
     tag,
-    plant: record?.Plant || C.plant,
-    name: info["Equipment Name"] || record?.["Risk Case Title"] || tag,
+    plant: record?.Plant || plantCodeOf(tag) || C.plant,
+    name: info["Equipment Name"] || tag,
     eqType: record?.["Eq. Type"] || tag.split("-")[0],
-    component: String(record?.Component || ""),
-    discipline: record?.Discipline || info.Discipline || "",
+    discipline: info.Discipline || record?.Discipline || "",
     domains: domainsOf(text),
   };
 }
 
-function componentOverlap(a, b) {
-  const x = a.toLowerCase().trim();
-  const y = b.toLowerCase().trim();
-  if (!x || !y) return 0;
-  if (x === y) return 1;
-  const words = (s) => s.split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !GENERIC_COMPONENT_WORDS.includes(w));
-  const wb = words(y);
-  return words(x).some((w) => wb.includes(w)) ? 0.5 : 0;
-}
-
 function scoreCandidate(subject, c) {
-  const reasons = [];
-  let score = 0;
-  if (c["Tag Number"] === subject.tag) {
-    score += 15;
-    reasons.push("Same equipment tag");
-  }
+  const candDomains = domainsOf([c["Risk Case Title"], c.Component, c["F Mechanism"]].join(" "));
+  const shared = [...subject.domains].filter((d) => candDomains.has(d));
+  if (!shared.length) return { score: 0, reasons: [] }; // no shared failure domain -> not similar
+
+  const reasons = ["Related failure domain: " + shared.join(", ")];
+  let score = 50 * Math.min(1, shared.length / Math.max(1, subject.domains.size));
+  if (c.Component) reasons.push("Component: " + c.Component);
   if (subject.eqType && c["Eq. Type"] === subject.eqType) {
-    score += 25;
+    score += 20;
     reasons.push("Same equipment type (" + subject.eqType + ")");
   }
-  const comp = componentOverlap(subject.component, String(c.Component || ""));
-  if (comp) {
-    score += 20 * comp;
-    reasons.push((comp === 1 ? "Same component: " : "Related component: ") + c.Component);
+  if (c["Tag Number"] === subject.tag) {
+    score += 10;
+    reasons.push("Same equipment tag");
   }
   if (subject.discipline && c.Discipline === subject.discipline) {
     score += 5;
     reasons.push("Same discipline (" + subject.discipline + ")");
   }
-  const candDomains = domainsOf([c["Risk Case Title"], c.Component].join(" "));
-  const shared = [...subject.domains].filter((d) => candDomains.has(d));
-  if (shared.length) {
-    score += 35 * Math.min(1, shared.length / Math.max(1, Math.min(subject.domains.size, candDomains.size)));
-    reasons.push("Related failure domain: " + shared.join(", "));
+  // Incidents with a documented RCA are more useful (they carry verified causes and actions).
+  if (rcaByAR(c["AR No."])) {
+    score += 10;
+    reasons.push("Verified RCA available");
   }
   return { score, reasons };
 }
 
 function findSimilarIncidents(subject, ctx) {
-  const ownAR = ctx.mode === "REGISTER" ? ctx.record?.["AR No."] : null;
-  return C.incidents
-    .filter((x) => x["Tag Number"] && !/CANCEL/i.test(String(x["Overall Status"] || "")) && x["AR No."] !== ownAR)
-    .map((row) => ({ row, ...scoreCandidate(subject, row) }))
+  const ranked = C.incidents
+    .filter((x) => x["Tag Number"] && !/CANCEL/i.test(String(x["Overall Status"] || "")))
+    .map((row) => ({ row, rca: rcaByAR(row["AR No."]), ...scoreCandidate(subject, row) }))
     .filter((m) => m.score >= 45)
-    .sort((a, b) => b.score - a.score || num(b.row["Total Loss (k US$)"]) - num(a.row["Total Loss (k US$)"]))
-    .slice(0, 6)
-    .map((m) => ({
-      ...m,
-      label: m.score >= 75 ? "HIGH" : m.score >= 55 ? "MEDIUM" : "LOW",
-      rca: rcaByAR(m.row["AR No."]),
-      relation:
-        m.row["Tag Number"] === subject.tag
-          ? "Previous incident on this equipment"
-          : m.row.Plant !== subject.plant
-            ? "Other plant (" + m.row.Plant + ")"
-            : "Same plant",
-    }));
+    .sort((a, b) => b.score - a.score || num(b.row["Total Loss (k US$)"]) - num(a.row["Total Loss (k US$)"]));
+
+  // Top 6, but make sure at least 2 incidents with a documented RCA are included when they exist,
+  // because only those carry verified causes and corrective actions.
+  const top = ranked.slice(0, 6);
+  const need = Math.max(0, 2 - top.filter((m) => m.rca).length);
+  const extra = ranked.slice(6).filter((m) => m.rca).slice(0, need);
+  const picked = top.slice(0, 6 - extra.length).concat(extra).sort((a, b) => b.score - a.score);
+
+  return picked.map((m) => ({
+    ...m,
+    label: m.score >= 75 ? "HIGH" : m.score >= 55 ? "MEDIUM" : "LOW",
+    relation:
+      m.row["Tag Number"] === subject.tag
+        ? "Previous incident on this equipment"
+        : m.row.Plant !== subject.plant
+          ? "Other plant (" + m.row.Plant + ")"
+          : "Same plant",
+  }));
 }
 
 /* ---- possible causes & recommended actions ---- */
@@ -1850,6 +1873,16 @@ function renderDiagnostics() {
             })
             .join("")}
         </select>
+        ${
+          casesForTag().length > 1
+            ? `<label style="margin-top:12px">Case</label>
+        <select onchange="changeCase(this.value)">
+          ${casesForTag()
+            .map((x) => `<option value="${esc(x.id)}" ${c && x.id === c.id ? "selected" : ""}>${esc(x.id)} · ${esc(x.status)}</option>`)
+            .join("")}
+        </select>`
+            : ""
+        }
       </div>
     </div>`;
 
@@ -1981,7 +2014,7 @@ function renderDiagnostics() {
       <div class="timeline">${c.abnormal.length} tripped parameter(s) on ${esc(c.tripDate)}</div>
       <div class="timeline">${matches.length} similar incident(s) across ${plantCount} plant(s)</div>
       <div class="timeline">${rcaCount} of ${matches.length} similar incident(s) have a historical RCA</div>
-      <div class="timeline">${d.ctx.record ? "Previous incident on this tag: " + esc(d.ctx.record["AR No."]) : "No previous incident on this tag"}</div>
+      <div class="timeline">Matching is based on the tripped parameter(s): ${esc(c.abnormal.map((p) => p.label).join(", "))}</div>
     </div>`;
   const analysis = `${similar}${rcaRef}<div class="dashboard-grid">${causesCard}${evidenceCard}</div>`;
 
@@ -2220,6 +2253,7 @@ function openCase(id) {
   if (!c) return;
   C.plant = c.plant || C.plant;
   C.tag = c.tag;
+  C.activeCaseId = c.id;
   C.assigningPlan = false;
   go("diagnostics");
 }
@@ -2242,6 +2276,12 @@ function openActionPlan() {
   if (!c.rca.confirmedAt) return alert("Confirm the root cause first.");
   if (!(C.diagSel[c.id] || []).length) return;
   C.assigningPlan = true;
+  rerender();
+}
+
+function changeCase(id) {
+  C.activeCaseId = id;
+  C.assigningPlan = false;
   rerender();
 }
 
@@ -2393,8 +2433,12 @@ function isOverdue(t) {
 }
 
 function renderTasks() {
-  const rows =
+  const mine =
     C.role === "manager" ? C.tasks : C.tasks.filter((x) => x.pic === C.user || caseOwnerOf(x) === C.user);
+  // Tasks of open cases first (newest first); tasks of closed cases drop to the bottom as history.
+  const caseOpen = (t) => (caseById(t.caseId)?.status === "RISK CLOSED" ? 1 : 0);
+  const rows = [...mine].reverse().sort((a, b) => caseOpen(a) - caseOpen(b));
+
 
   return `
     <div class="page-header">
